@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+        :root {
+            --primary-red: #E2231A;
+            --surface-black: #0A0A0A;
+            --surface-card: #161616;
+        }
+
+        body {
+            background-color: var(--surface-black);
+            color: #e3e2e2;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .shield-glow {
+            filter: drop-shadow(0 0 15px rgba(226, 35, 26, 0.4));
+        }
+
+        .pulse-animation {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        .active-red-border {
+            border-left: 4px solid var(--primary-red);
+        }
+
+        .glass-blur {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-primary-container": "#fffaff",
+                        "tertiary-container": "#757474",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-background": "#e3e2e2",
+                        "surface-tint": "#ffb4a9",
+                        "on-primary": "#690001",
+                        "error-container": "#93000a",
+                        "surface-container-low": "#1b1c1c",
+                        "surface-container-lowest": "#0d0e0f",
+                        "on-primary-fixed": "#410000",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#e7bdb7",
+                        "on-surface": "#e3e2e2",
+                        "on-secondary-container": "#b7b4b4",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "primary": "#ffb4a9",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "surface-container-highest": "#343535",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-container": "#fffbfb",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#ae8882",
+                        "outline-variant": "#5d3f3b",
+                        "surface": "#121414",
+                        "surface-bright": "#383939",
+                        "surface-dim": "#121414",
+                        "surface-container-high": "#292a2a",
+                        "background": "#121414",
+                        "inverse-surface": "#e3e2e2",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "inverse-on-surface": "#303031",
+                        "on-tertiary": "#303030",
+                        "inverse-primary": "#c00005",
+                        "primary-container": "#e2231a",
+                        "surface-container": "#1f2020",
+                        "surface-variant": "#343535",
+                        "secondary": "#c8c6c5",
+                        "tertiary-fixed": "#e5e2e1",
+                        "primary-fixed": "#ffdad5",
+                        "tertiary": "#c8c6c5",
+                        "secondary-container": "#474746",
+                        "on-primary-fixed-variant": "#930003",
+                        "on-secondary": "#313030",
+                        "on-error": "#690005"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "8px",
+                        "gutter": "16px",
+                        "xl": "48px",
+                        "base": "4px",
+                        "lg": "32px",
+                        "safe-margin": "20px",
+                        "sm": "16px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "headline-xl": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "data-mono": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "30px", "fontWeight": "700"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "data-mono": ["16px", {"lineHeight": "24px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest min-h-screen flex flex-col font-body-md text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="bg-surface flex justify-between items-center w-full px-safe-margin h-16 fixed top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline/20">
+<img class="w-full h-full object-cover" data-alt="A professional close-up studio portrait of a technology professional, illuminated with dramatic low-key lighting and subtle red highlights on the side of their face. The background is a deep, textured black, reinforcing the high-performance and secure aesthetic of Sentry VPN. The overall mood is serious and authoritative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqwA4fuTrYuwKLJnIGFkpbzlj97cZ_7CiCqVylitR0gQxYeZn3Y7djQkXOfJopzUTi1nLzFfGLuM9HYzydX3DrXFmWCFGYc03torFJw4uc6fRFtgM9vj_NM3HJNDm6_VRS5pWV_F1GHIAOyM8TqX71j6itfjc3-Ch7YkNo8E2ijXJs8CNkIqmDUNsGPT76bvHF79kRWDuisDWBcrr1mePqGa82Q63vPuG1jU5kte8TPzTgtdERVsETxmEp_JCCShLIMHlnJoCl9k7x"/>
+</div>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tighter text-primary">SENTRY VPN</span>
+</div>
+<button class="text-secondary hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[28px]" data-icon="settings">settings</span>
+</button>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 flex flex-col pt-16 pb-20 px-safe-margin max-w-md mx-auto w-full">
+<!-- Animated Background Mesh (Atmospheric) -->
+<div class="fixed inset-0 pointer-events-none opacity-20">
+</div>
+<!-- Server Selector Row -->
+<div class="mt-8 flex justify-center">
+<button class="bg-surface-container-high py-3 px-5 rounded-full flex items-center gap-3 border border-outline-variant/10 hover:bg-surface-container-highest transition-colors active:scale-95">
+<span class="text-xl">🇺🇸</span>
+<span class="font-label-caps text-label-caps text-on-surface tracking-wider">UNITED STATES - NEW YORK</span>
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="expand_more">expand_more</span>
+</button>
+</div>
+<!-- Central Connect Interface -->
+<div class="flex-1 flex flex-col items-center justify-center relative py-12">
+<!-- Connection Button Outer Ring -->
+<div class="relative flex items-center justify-center">
+<!-- Outer Pulse Glow (Inactive state) -->
+<div class="absolute w-64 h-64 rounded-full border-2 border-primary/10 pulse-animation"></div>
+<!-- The Main Button Shell -->
+<button class="relative z-10 w-52 h-52 rounded-full bg-primary-container flex items-center justify-center transition-all duration-500 shadow-[0_0_40px_rgba(226,35,26,0.6)] group" id="connect-btn"><div class="text-on-primary-container transition-transform duration-500 group-active:scale-90"><span class="material-symbols-outlined text-[100px] leading-none" data-icon="shield" style="font-variation-settings: 'FILL' 1;">shield</span></div></button>
+</div>
+<div class="mt-8 flex flex-col items-center gap-1"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-green-500"></div><h2 class="font-label-caps text-label-caps text-on-surface font-bold uppercase tracking-[0.2em]" id="status-label">Protected</h2></div><p class="font-data-mono text-xl text-on-surface mt-1" id="session-timer">00:12:45</p><p class="font-data-mono text-body-sm text-outline-variant opacity-60" id="ip-label">IP: 45.12.98.204</p></div>
+</div>
+<!-- Real-time Metrics Bento -->
+<div class="mb-lg grid grid-cols-2 gap-gutter">
+<div class="bg-surface-container py-4 px-5 rounded-xl border border-outline-variant/10 flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary-container">
+<span class="material-symbols-outlined text-sm font-bold" data-icon="south">south</span>
+<span class="font-label-caps text-label-caps text-secondary opacity-80 uppercase">Down</span>
+</div>
+<div class="flex items-baseline gap-1">
+<span class="font-data-mono text-headline-lg-mobile text-on-surface" id="down-speed">12.4</span>
+<span class="font-label-caps text-[10px] text-outline-variant uppercase">MBPS</span>
+</div>
+</div>
+<div class="bg-surface-container py-4 px-5 rounded-xl border border-outline-variant/10 flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary-container">
+<span class="material-symbols-outlined text-sm font-bold" data-icon="north">north</span>
+<span class="font-label-caps text-label-caps text-secondary opacity-80 uppercase">Up</span>
+</div>
+<div class="flex items-baseline gap-1">
+<span class="font-data-mono text-headline-lg-mobile text-on-surface" id="up-speed">1.2</span>
+<span class="font-label-caps text-[10px] text-outline-variant uppercase">MBPS</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 pb-safe px-md bg-surface-container-lowest border-t border-outline-variant/10">
+<!-- Home (Active) -->
+<a class="flex items-center justify-center text-primary drop-shadow-[0_0_8px_rgba(226,35,26,0.4)] hover:text-primary-fixed-dim transition-colors scale-110 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined text-3xl" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+</a>
+<!-- Servers -->
+<a class="flex items-center justify-center text-secondary hover:text-primary-fixed-dim transition-colors" href="#">
+<span class="material-symbols-outlined text-3xl" data-icon="dns">dns</span>
+</a>
+<!-- Analytics -->
+<a class="flex items-center justify-center text-secondary hover:text-primary-fixed-dim transition-colors" href="#">
+<span class="material-symbols-outlined text-3xl" data-icon="equalizer">equalizer</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center justify-center text-secondary hover:text-primary-fixed-dim transition-colors" href="#">
+<span class="material-symbols-outlined text-3xl" data-icon="settings">settings</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for Connect Button
+        const connectBtn = document.getElementById('connect-btn');
+        const statusLabel = document.getElementById('status-label');
+        const ipLabel = document.getElementById('ip-label');
+        const downSpeed = document.getElementById('down-speed');
+        const upSpeed = document.getElementById('up-speed');
+        
+        let isConnected = false;
+        let updateInterval;
+
+        connectBtn.addEventListener('click', () => {
+            isConnected = !isConnected;
+            
+            if (isConnected) {
+                // Transition to Connected State
+                connectBtn.classList.add('border-primary-container', 'shadow-[0_0_40px_rgba(226,35,26,0.4)]');
+                connectBtn.classList.remove('border-primary-container/30');
+                connectBtn.querySelector('span').style.fontVariationSettings = "'FILL' 1";
+                statusLabel.innerText = 'Connected';
+                statusLabel.classList.add('text-primary-container');
+                statusLabel.classList.remove('text-secondary');
+                ipLabel.innerText = 'IP: 45.12.98.204';
+                ipLabel.classList.add('opacity-100');
+
+                // Simulate data speed
+                updateInterval = setInterval(() => {
+                    downSpeed.innerText = (Math.random() * 80 + 20).toFixed(1);
+                    upSpeed.innerText = (Math.random() * 15 + 5).toFixed(1);
+                }, 1000);
+            } else {
+                // Transition to Disconnected State
+                connectBtn.classList.remove('border-primary-container', 'shadow-[0_0_40px_rgba(226,35,26,0.4)]');
+                connectBtn.classList.add('border-primary-container/30');
+                connectBtn.querySelector('span').style.fontVariationSettings = "'FILL' 0";
+                statusLabel.innerText = 'Tap to Connect';
+                statusLabel.classList.remove('text-primary-container');
+                statusLabel.classList.add('text-secondary');
+                ipLabel.innerText = 'IP: 192.168.1.1';
+                ipLabel.classList.remove('opacity-100');
+                
+                clearInterval(updateInterval);
+                downSpeed.innerText = '0.0';
+                upSpeed.innerText = '0.0';
+            }
+        });
+    </script>
+</body></html>

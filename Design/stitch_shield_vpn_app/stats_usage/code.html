@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>SENTRY VPN - Usage Stats</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-primary-container": "#fffaff",
+                    "tertiary-container": "#757474",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-background": "#e3e2e2",
+                    "surface-tint": "#ffb4a9",
+                    "on-primary": "#690001",
+                    "error-container": "#93000a",
+                    "surface-container-low": "#1b1c1c",
+                    "surface-container-lowest": "#0d0e0f",
+                    "on-primary-fixed": "#410000",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "error": "#ffb4ab",
+                    "on-surface-variant": "#e7bdb7",
+                    "on-surface": "#e3e2e2",
+                    "on-secondary-container": "#b7b4b4",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "primary": "#ffb4a9",
+                    "primary-fixed-dim": "#ffb4a9",
+                    "surface-container-highest": "#343535",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-tertiary-container": "#fffbfb",
+                    "on-error-container": "#ffdad6",
+                    "outline": "#ae8882",
+                    "outline-variant": "#5d3f3b",
+                    "surface": "#121414",
+                    "surface-bright": "#383939",
+                    "surface-dim": "#121414",
+                    "surface-container-high": "#292a2a",
+                    "background": "#121414",
+                    "inverse-surface": "#e3e2e2",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "inverse-on-surface": "#303031",
+                    "on-tertiary": "#303030",
+                    "inverse-primary": "#c00005",
+                    "primary-container": "#e2231a",
+                    "surface-container": "#1f2020",
+                    "surface-variant": "#343535",
+                    "secondary": "#c8c6c5",
+                    "tertiary-fixed": "#e5e2e1",
+                    "primary-fixed": "#ffdad5",
+                    "tertiary": "#c8c6c5",
+                    "secondary-container": "#474746",
+                    "on-primary-fixed-variant": "#930003",
+                    "on-secondary": "#313030",
+                    "on-error": "#690005"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "xs": "8px",
+                    "gutter": "16px",
+                    "xl": "48px",
+                    "base": "4px",
+                    "lg": "32px",
+                    "safe-margin": "20px",
+                    "sm": "16px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "headline-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "label-caps": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "data-mono": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "30px", "fontWeight": "700"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "data-mono": ["16px", {"lineHeight": "24px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0A0A0A;
+            color: #e3e2e2;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-red {
+            filter: drop-shadow(0 0 12px rgba(226, 35, 26, 0.4));
+        }
+        .border-thin {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .circular-chart {
+            display: block;
+            margin: 10px auto;
+            max-width: 80%;
+            max-height: 250px;
+        }
+        .circle-bg {
+            fill: none;
+            stroke: #161616;
+            stroke-width: 2.8;
+        }
+        .circle {
+            fill: none;
+            stroke-width: 2.8;
+            stroke-linecap: round;
+            animation: progress 1s ease-out forwards;
+            stroke: #E2231A;
+        }
+        @keyframes progress {
+            0% { stroke-dasharray: 0 100; }
+        }
+        .grid-line {
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 1;
+        }
+        .trend-line {
+            stroke: #E2231A;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 4px 6px rgba(226, 35, 26, 0.3));
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #E2231A; border-radius: 2px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="bg-surface fixed top-0 left-0 w-full z-50 flex justify-between items-center px-safe-margin h-16">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="shield">shield</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tighter text-primary">SENTRY VPN</h1>
+</div>
+<div class="w-10 h-10 rounded-full border-thin flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional, close-up portrait of a tech-savvy user in a dark, moody cyber-punk environment. The character has a neutral expression, illuminated by red and cool white light coming from computer monitors. The aesthetic is clean and high-performance, with deep shadows and sharp, precise lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2MaUPqV0kbCapXG9AjjT2ZKue8wXBKJxjY8nYejcofp5QhFDAcKScPn79Lzl701l6GxSWeBK1H4IVthbLofEblWxYo845Rzz7zLB4MriLI6aO_9IY1bXfO75dAFqzMF0rcykEKX5Qlfs48hIwc9ks0T0BEz67Y9FXBRfOJ9djLJ0wUNVjDfcz0sNcI8VoiqwJiYaj5uhVJNoF0Z3kc4Uop33sOPJOKU_ahVe0r-HuKfwo72Y3rKNd6kGZGE2R0TMDjVoX15OSCnWy"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-safe-margin max-w-lg mx-auto space-y-6">
+<!-- Section Header -->
+<div class="flex justify-between items-end">
+<div>
+<span class="font-label-caps text-label-caps text-secondary mb-1 block">NETWORK OVERVIEW</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile">Usage Analytics</h2>
+</div>
+<div class="font-data-mono text-body-sm text-primary flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                LIVE
+            </div>
+</div>
+<!-- Circular Data Usage Card -->
+<div class="bg-[#161616] p-lg rounded-xl border-thin relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+<div class="relative">
+<svg class="circular-chart mx-auto w-48 h-48" viewbox="0 0 36 36">
+<path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+<path class="circle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-dasharray="65, 100"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-headline-xl text-headline-xl text-on-background">1.2</span>
+<span class="font-label-caps text-label-caps text-secondary">GB USED</span>
+</div>
+</div>
+<div class="mt-4 flex justify-between items-center text-body-sm">
+<div class="flex flex-col">
+<span class="text-secondary opacity-60">Plan Limit</span>
+<span class="font-data-mono">5.0 GB</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-secondary opacity-60">Remaining</span>
+<span class="font-data-mono text-primary">3.8 GB</span>
+</div>
+</div>
+</div>
+<!-- Speed Trends Line Graph -->
+<div class="bg-[#161616] p-md rounded-xl border-thin">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-label-caps text-label-caps text-secondary">SPEED TRENDS (MBPS)</h3>
+<span class="material-symbols-outlined text-secondary opacity-40 text-sm" data-icon="more_horiz">more_horiz</span>
+</div>
+<div class="h-40 w-full relative">
+<svg class="w-full h-full" preserveaspectratio="none">
+<!-- Grid -->
+<line class="grid-line" x1="0" x2="100%" y1="0%" y2="0%"></line>
+<line class="grid-line" x1="0" x2="100%" y1="25%" y2="25%"></line>
+<line class="grid-line" x1="0" x2="100%" y1="50%" y2="50%"></line>
+<line class="grid-line" x1="0" x2="100%" y1="75%" y2="75%"></line>
+<line class="grid-line" x1="0" x2="100%" y1="100%" y2="100%"></line>
+<!-- Line Graph -->
+<path class="trend-line" d="M0 80 Q 50 20, 100 70 T 200 40 T 300 90 T 400 30 T 500 50" id="trendPath" vector-effect="non-scaling-stroke"></path>
+</svg>
+</div>
+<div class="flex justify-between mt-4 font-data-mono text-[10px] text-secondary opacity-40">
+<span>12:00</span>
+<span>14:00</span>
+<span>16:00</span>
+<span>18:00</span>
+<span>20:00</span>
+</div>
+</div>
+<!-- Stats 2x2 Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Total Data -->
+<div class="bg-[#161616] p-md rounded-xl border-thin hover:border-primary/30 transition-colors group">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="database">database</span>
+<span class="font-label-caps text-[10px] text-secondary">TOTAL DATA</span>
+</div>
+<div class="font-data-mono text-headline-lg-mobile">24.8 <span class="text-xs text-secondary">GB</span></div>
+</div>
+<!-- Sessions -->
+<div class="bg-[#161616] p-md rounded-xl border-thin hover:border-primary/30 transition-colors group">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="history">history</span>
+<span class="font-label-caps text-[10px] text-secondary">SESSIONS</span>
+</div>
+<div class="font-data-mono text-headline-lg-mobile">142</div>
+</div>
+<!-- Avg Speed -->
+<div class="bg-[#161616] p-md rounded-xl border-thin hover:border-primary/30 transition-colors group">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="speed">speed</span>
+<span class="font-label-caps text-[10px] text-secondary">AVG SPEED</span>
+</div>
+<div class="font-data-mono text-headline-lg-mobile">84 <span class="text-xs text-secondary">MBPS</span></div>
+</div>
+<!-- Time Protected -->
+<div class="bg-[#161616] p-md rounded-xl border-thin hover:border-primary/30 transition-colors group">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="verified_user">verified_user</span>
+<span class="font-label-caps text-[10px] text-secondary">PROTECTED</span>
+</div>
+<div class="font-data-mono text-headline-lg-mobile">18 <span class="text-xs text-secondary">D</span></div>
+</div>
+</div>
+<!-- Recent Logs (Bento element) -->
+<div class="bg-[#161616] p-md rounded-xl border-thin">
+<h3 class="font-label-caps text-label-caps text-secondary mb-4">SECURITY AUDIT</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="public">public</span>
+</div>
+<div>
+<p class="text-body-sm font-bold">New York, USA</p>
+<p class="text-[10px] text-secondary">Connection established</p>
+</div>
+</div>
+<span class="font-data-mono text-[10px] text-secondary">2m ago</span>
+</div>
+<div class="flex items-center justify-between opacity-60">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-sm" data-icon="lock">lock</span>
+</div>
+<div>
+<p class="text-body-sm font-bold">Encrypted Tunnel</p>
+<p class="text-[10px] text-secondary">AES-256 Protocol active</p>
+</div>
+</div>
+<span class="font-data-mono text-[10px] text-secondary">14m ago</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 pb-safe px-md bg-surface-container-lowest border-t border-outline-variant/10">
+<!-- Home -->
+<button class="flex items-center justify-center text-secondary hover:text-primary-fixed-dim transition-colors group">
+<span class="material-symbols-outlined scale-100 group-active:scale-110 duration-200 ease-out" data-icon="home">home</span>
+</button>
+<!-- Servers -->
+<button class="flex items-center justify-center text-secondary hover:text-primary-fixed-dim transition-colors group">
+<span class="material-symbols-outlined scale-100 group-active:scale-110 duration-200 ease-out" data-icon="dns">dns</span>
+</button>
+<!-- Stats (Active) -->
+<button class="flex items-center justify-center text-primary drop-shadow-[0_0_8px_rgba(226,35,26,0.4)] transition-colors group">
+<span class="material-symbols-outlined scale-110 duration-200 ease-out" data-icon="equalizer" style="font-variation-settings: 'FILL' 1;">equalizer</span>
+</button>
+<!-- Settings -->
+<button class="flex items-center justify-center text-secondary hover:text-primary-fixed-dim transition-colors group">
+<span class="material-symbols-outlined scale-100 group-active:scale-110 duration-200 ease-out" data-icon="settings">settings</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for the trend line
+        window.addEventListener('DOMContentLoaded', () => {
+            const path = document.getElementById('trendPath');
+            if (path) {
+                const length = path.getTotalLength();
+                path.style.strokeDasharray = length;
+                path.style.strokeDashoffset = length;
+                path.getBoundingClientRect(); // trigger reflow
+                path.style.transition = 'stroke-dashoffset 2s ease-in-out';
+                path.style.strokeDashoffset = '0';
+            }
+        });
+    </script>
+</body></html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-primary-container": "#fffaff",
+                    "tertiary-container": "#757474",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-background": "#e3e2e2",
+                    "surface-tint": "#ffb4a9",
+                    "on-primary": "#690001",
+                    "error-container": "#93000a",
+                    "surface-container-low": "#1b1c1c",
+                    "surface-container-lowest": "#0d0e0f",
+                    "on-primary-fixed": "#410000",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "error": "#ffb4ab",
+                    "on-surface-variant": "#e7bdb7",
+                    "on-surface": "#e3e2e2",
+                    "on-secondary-container": "#b7b4b4",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "primary": "#ffb4a9",
+                    "primary-fixed-dim": "#ffb4a9",
+                    "surface-container-highest": "#343535",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-tertiary-container": "#fffbfb",
+                    "on-error-container": "#ffdad6",
+                    "outline": "#ae8882",
+                    "outline-variant": "#5d3f3b",
+                    "surface": "#121414",
+                    "surface-bright": "#383939",
+                    "surface-dim": "#121414",
+                    "surface-container-high": "#292a2a",
+                    "background": "#121414",
+                    "inverse-surface": "#e3e2e2",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "inverse-on-surface": "#303031",
+                    "on-tertiary": "#303030",
+                    "inverse-primary": "#c00005",
+                    "primary-container": "#e2231a",
+                    "surface-container": "#1f2020",
+                    "surface-variant": "#343535",
+                    "secondary": "#c8c6c5",
+                    "tertiary-fixed": "#e5e2e1",
+                    "primary-fixed": "#ffdad5",
+                    "tertiary": "#c8c6c5",
+                    "secondary-container": "#474746",
+                    "on-primary-fixed-variant": "#930003",
+                    "on-secondary": "#313030",
+                    "on-error": "#690005"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "xs": "8px",
+                    "gutter": "16px",
+                    "xl": "48px",
+                    "base": "4px",
+                    "lg": "32px",
+                    "safe-margin": "20px",
+                    "sm": "16px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "headline-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "label-caps": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "data-mono": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "30px", "fontWeight": "700"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "data-mono": ["16px", {"lineHeight": "24px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0A0A0A;
+            color: #e3e2e2;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-red {
+            filter: drop-shadow(0 0 12px rgba(226, 35, 26, 0.4));
+        }
+        .premium-card {
+            background: linear-gradient(145deg, #161616 0%, #0d0d0d 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .active-red-glow {
+            box-shadow: 0 0 20px 0 rgba(226, 35, 26, 0.15);
+        }
+        /* Custom Switch Styling */
+        .plan-switch input:checked ~ .switch-thumb {
+            transform: translateX(100%);
+            background-color: #E2231A;
+            box-shadow: 0 0 10px rgba(226, 35, 26, 0.6);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col font-body-md overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="flex justify-between items-center w-full px-safe-margin h-16 bg-surface dark:bg-surface fixed top-0 z-50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="shield">shield</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tighter text-primary">SENTRY VPN</h1>
+</div>
+<button class="hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="material-symbols-outlined text-secondary" data-icon="close">close</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-16 px-safe-margin pb-32 flex flex-col items-center">
+<!-- Hero Section -->
+<div class="w-full max-w-md pt-lg text-center flex flex-col items-center">
+<div class="relative mb-md">
+<!-- Shield with Crown -->
+<div class="relative inline-block">
+<span class="material-symbols-outlined text-primary text-[80px] leading-none glow-red" data-icon="shield" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span class="material-symbols-outlined text-primary absolute -top-4 left-1/2 -translate-x-1/2 text-[32px]" data-icon="crown" style="font-variation-settings: 'FILL' 1;">crown</span>
+</div>
+</div>
+<h2 class="font-headline-xl text-headline-xl mb-xs">Unlock Full Protection</h2>
+<p class="text-secondary font-body-md max-w-[280px] mx-auto opacity-80">Experience military-grade encryption without limits.</p>
+</div>
+<!-- Plan Toggle -->
+<div class="w-full max-w-md mt-lg mb-lg">
+<div class="bg-surface-container-high rounded-full p-1 flex items-center relative overflow-hidden">
+<button class="flex-1 py-3 font-label-caps text-label-caps relative z-10 transition-colors text-on-surface" id="monthly-btn">Monthly</button>
+<button class="flex-1 py-3 font-label-caps text-label-caps relative z-10 transition-colors text-on-surface flex items-center justify-center gap-2" id="yearly-btn">
+                    Yearly
+                    <span class="bg-primary-container text-white px-2 py-0.5 rounded-full text-[10px] tracking-normal font-bold">Save 40%</span>
+</button>
+<!-- Animated Slider Background -->
+<div class="absolute h-[calc(100%-8px)] w-[calc(50%-4px)] bg-surface-container-highest rounded-full transition-transform duration-300 ease-out translate-x-[calc(100%+4px)] border border-outline-variant/20" id="switch-bg"></div>
+</div>
+</div>
+<!-- Bento Grid Feature Checklist -->
+<div class="w-full max-w-md grid grid-cols-1 gap-sm">
+<div class="premium-card p-md rounded-xl flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" data-icon="dns">dns</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-caps text-label-caps text-on-surface">Premium Servers</h3>
+<p class="text-body-sm text-secondary opacity-70">Access 90+ global locations</p>
+</div>
+<span class="material-symbols-outlined text-primary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="premium-card p-md rounded-xl flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" data-icon="gpp_maybe">gpp_maybe</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-caps text-label-caps text-on-surface">Kill Switch</h3>
+<p class="text-body-sm text-secondary opacity-70">Zero data leaks if connection drops</p>
+</div>
+<span class="material-symbols-outlined text-primary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="premium-card p-md rounded-xl flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" data-icon="speed">speed</span>
+</div>
+<div class="flex-1">
+<h3 class="font-label-caps text-label-caps text-on-surface">Unlimited Data</h3>
+<p class="text-body-sm text-secondary opacity-70">No caps, no throttling, just speed</p>
+</div>
+<span class="material-symbols-outlined text-primary-container" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Price Display (Contextual) -->
+<div class="mt-lg text-center">
+<div id="price-container">
+<span class="text-on-surface font-headline-lg-mobile text-headline-lg-mobile">$4.99</span>
+<span class="text-secondary font-body-sm">/ month</span>
+</div>
+<p class="text-secondary font-body-sm opacity-60 mt-xs" id="billing-info">Billed annually ($59.88/year)</p>
+</div>
+</main>
+<!-- Bottom Action Bar (Floating CTA) -->
+<footer class="fixed bottom-0 left-0 w-full p-safe-margin bg-gradient-to-t from-background via-background to-transparent pt-lg">
+<div class="max-w-md mx-auto flex flex-col gap-sm">
+<button class="w-full bg-primary-container text-on-primary-container py-4 rounded-full font-headline-lg-mobile text-headline-lg-mobile shadow-[0_0_24px_rgba(226,35,26,0.3)] active:scale-[0.98] transition-all duration-200">
+                Start Free Trial
+            </button>
+<p class="text-[10px] text-center text-secondary leading-relaxed opacity-50 px-md">
+                By subscribing, you agree to our Terms of Service and Privacy Policy. Subscription renews automatically unless canceled 24h before trial ends. Manage in App Store settings.
+            </p>
+</div>
+</footer>
+<!-- Scripts for UI Interactions -->
+<script>
+        const monthlyBtn = document.getElementById('monthly-btn');
+        const yearlyBtn = document.getElementById('yearly-btn');
+        const switchBg = document.getElementById('switch-bg');
+        const priceValue = document.querySelector('#price-container span:first-child');
+        const billingInfo = document.getElementById('billing-info');
+
+        monthlyBtn.addEventListener('click', () => {
+            switchBg.style.transform = 'translateX(4px)';
+            priceValue.textContent = '$9.99';
+            billingInfo.textContent = 'Billed month to month';
+            monthlyBtn.classList.add('font-bold');
+            yearlyBtn.classList.remove('font-bold');
+        });
+
+        yearlyBtn.addEventListener('click', () => {
+            switchBg.style.transform = 'translateX(calc(100% + 4px))';
+            priceValue.textContent = '$4.99';
+            billingInfo.textContent = 'Billed annually ($59.88/year)';
+            yearlyBtn.classList.add('font-bold');
+            monthlyBtn.classList.remove('font-bold');
+        });
+
+        // Initialize state
+        yearlyBtn.classList.add('font-bold');
+    </script>
+</body></html>

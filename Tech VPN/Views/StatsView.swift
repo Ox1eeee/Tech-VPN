@@ -1,0 +1,493 @@
+//
+//  StatsView.swift
+//  Tech VPN
+//
+//  Created by Xylo on 20/03/26.
+//
+
+import SwiftUI
+
+struct StatsView: View {
+    @ObservedObject var vpnManager: VPNManager
+    
+    @State private var usageStats: UsageStats?
+    @State private var securityAudit: SecurityAudit?
+    @State private var isLoading = false
+    
+    var body: some View {
+        ZStack {
+            AppTheme.Colors.background
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Top Bar
+                statsTopBar
+                
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: AppTheme.Spacing.md) {
+                        // Section Header
+                        sectionHeader
+                            .padding(.horizontal, AppTheme.Spacing.safeMargin)
+                        
+                        // Data Usage Circle
+                        dataUsageCard
+                            .padding(.horizontal, AppTheme.Spacing.safeMargin)
+                        
+                        // Speed Trends
+                        speedTrendsCard
+                            .padding(.horizontal, AppTheme.Spacing.safeMargin)
+                        
+                        // Stats Grid
+                        statsGrid
+                            .padding(.horizontal, AppTheme.Spacing.safeMargin)
+                        
+                        // Security Audit
+                        securityAuditCard
+                            .padding(.horizontal, AppTheme.Spacing.safeMargin)
+                            .padding(.bottom, 100)
+                    }
+                    .padding(.top, AppTheme.Spacing.md)
+                }
+            }
+        }
+        .task {
+            await fetchStats()
+        }
+    }
+    
+    // MARK: - Fetch Stats
+    private func fetchStats() async {
+        isLoading = true
+        do {
+            usageStats = try await APIService.shared.fetchUsageStats()
+            securityAudit = try await APIService.shared.fetchSecurityAudit()
+        } catch {
+            print("Failed to fetch stats: \(error.localizedDescription)")
+        }
+        isLoading = false
+    }
+    
+    // MARK: - Formatting Helpers
+    private func formatBytes(_ bytes: Int) -> String {
+        let gb = Double(bytes) / 1_073_741_824
+        let mb = Double(bytes) / 1_048_576
+        if gb >= 1 {
+            return String(format: "%.1f", gb)
+        }
+        return String(format: "%.1f", mb)
+    }
+    
+    private func formatBytesUnit(_ bytes: Int) -> String {
+        let gb = Double(bytes) / 1_073_741_824
+        if gb >= 1 { return "GB" }
+        return "MB"
+    }
+    
+    private func formatSpeed(_ speed: Double) -> String {
+        let mbps = speed * 8 / 1_000_000
+        return String(format: "%.0f", mbps)
+    }
+    
+    private func formatDuration(_ seconds: Int) -> String {
+        if seconds >= 86400 {
+            return "\(seconds / 86400)"
+        } else if seconds >= 3600 {
+            return String(format: "%.1f", Double(seconds) / 3600)
+        }
+        return "\(seconds / 60)"
+    }
+    
+    private func formatDurationUnit(_ seconds: Int) -> String {
+        if seconds >= 86400 { return "D" }
+        if seconds >= 3600 { return "H" }
+        return "M"
+    }
+    
+    private func timeAgo(from dateString: String?) -> String {
+        guard let dateString = dateString,
+              let date = ISO8601DateFormatter().date(from: dateString) else {
+            return "—"
+        }
+        let interval = Date().timeIntervalSince(date)
+        if interval < 60 { return "Just now" }
+        if interval < 3600 { return "\(Int(interval / 60))m ago" }
+        if interval < 86400 { return "\(Int(interval / 3600))h ago" }
+        return "\(Int(interval / 86400))d ago"
+    }
+    
+    // MARK: - Top Bar
+    private var statsTopBar: some View {
+        HStack {
+            HStack(spacing: 12) {
+                Image(systemName: "shield")
+                    .font(.system(size: 18))
+                    .foregroundColor(AppTheme.Colors.primary)
+                
+                Text("TECH VPN")
+                    .font(.system(size: 20, weight: .bold))
+                    .tracking(-0.5)
+                    .foregroundColor(AppTheme.Colors.primary)
+            }
+            
+            Spacer()
+            
+            Circle()
+                .fill(AppTheme.Colors.surfaceContainerHigh)
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(AppTheme.Colors.secondary)
+                )
+        }
+        .padding(.horizontal, AppTheme.Spacing.safeMargin)
+        .frame(height: 64)
+        .background(AppTheme.Colors.surface)
+    }
+    
+    // MARK: - Section Header
+    private var sectionHeader: some View {
+        HStack(alignment: .bottom) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("NETWORK OVERVIEW")
+                    .font(.system(size: 12, weight: .bold))
+                    .tracking(1)
+                    .foregroundColor(AppTheme.Colors.secondary)
+                
+                Text("Usage Analytics")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.onBackground)
+            }
+            
+            Spacer()
+            
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(AppTheme.Colors.primary)
+                    .frame(width: 8, height: 8)
+                
+                Text("LIVE")
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundColor(AppTheme.Colors.primary)
+            }
+        }
+    }
+    
+    // MARK: - Data Usage Card
+    private var dataUsageCard: some View {
+        let totalData = usageStats?.totalData ?? 1288490186
+        let dataLimit: Double = 5_368_709_120
+        let progress = min(CGFloat(totalData) / CGFloat(dataLimit), 1.0)
+        let remaining = max(Int(dataLimit) - totalData, 0)
+        
+        return VStack(spacing: AppTheme.Spacing.md) {
+            ZStack {
+                Circle()
+                    .stroke(Color(hex: "#161616"), lineWidth: 8)
+                    .frame(width: 160, height: 160)
+                
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(AppTheme.Colors.primaryContainer, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .frame(width: 160, height: 160)
+                    .rotationEffect(.degrees(-90))
+                
+                VStack(spacing: 4) {
+                    Text(formatBytes(totalData))
+                        .font(.system(size: 36, weight: .heavy))
+                        .foregroundColor(AppTheme.Colors.onBackground)
+                    
+                    Text("\(formatBytesUnit(totalData)) USED")
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(1)
+                        .foregroundColor(AppTheme.Colors.secondary)
+                }
+            }
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Plan Limit")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.secondary.opacity(0.6))
+                    Text("5.0 GB")
+                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .foregroundColor(AppTheme.Colors.onSurface)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Remaining")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.secondary.opacity(0.6))
+                    Text("\(formatBytes(remaining)) \(formatBytesUnit(remaining))")
+                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .foregroundColor(AppTheme.Colors.primary)
+                }
+            }
+        }
+        .padding(AppTheme.Spacing.lg)
+        .background(Color(hex: "#161616"))
+        .cornerRadius(AppTheme.Radius.xl)
+        .overlay(
+            VStack {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, AppTheme.Colors.primaryContainer.opacity(0.3), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(height: 1)
+                Spacer()
+            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.xl))
+    }
+    
+    // MARK: - Speed Trends Card
+    private var speedTrendsCard: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            HStack {
+                Text("SPEED TRENDS (MBPS)")
+                    .font(.system(size: 12, weight: .bold))
+                    .tracking(1)
+                    .foregroundColor(AppTheme.Colors.secondary)
+                
+                Spacer()
+                
+                Image(systemName: "ellipsis")
+                    .foregroundColor(AppTheme.Colors.secondary.opacity(0.4))
+            }
+            
+            // Simplified chart placeholder
+            SpeedChartView()
+                .frame(height: 120)
+            
+            // Time labels
+            HStack {
+                ForEach(["12:00", "14:00", "16:00", "18:00", "20:00"], id: \.self) { time in
+                    Text(time)
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(AppTheme.Colors.secondary.opacity(0.4))
+                    if time != "20:00" { Spacer() }
+                }
+            }
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(Color(hex: "#161616"))
+        .cornerRadius(AppTheme.Radius.xl)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
+    }
+    
+    // MARK: - Stats Grid
+    private var statsGrid: some View {
+        let stats = usageStats
+        let totalData = stats?.totalData ?? 26640629760
+        let sessions = stats?.totalSessions ?? 142
+        let avgSpeed = stats?.averageSpeed ?? 10500000
+        let timeProtected = stats?.timeProtected ?? 1555200
+        
+        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.gutter) {
+            StatGridItem(icon: "externaldrive.fill", label: "TOTAL DATA", value: formatBytes(totalData), unit: formatBytesUnit(totalData))
+            StatGridItem(icon: "clock.arrow.circlepath", label: "SESSIONS", value: "\(sessions)", unit: "")
+            StatGridItem(icon: "speedometer", label: "AVG SPEED", value: formatSpeed(avgSpeed), unit: "MBPS")
+            StatGridItem(icon: "checkmark.shield.fill", label: "PROTECTED", value: formatDuration(timeProtected), unit: formatDurationUnit(timeProtected))
+        }
+    }
+    
+    // MARK: - Security Audit
+    private var securityAuditCard: some View {
+        let logEntries = securityAudit?.auditLog ?? []
+        let hasRealData = !logEntries.isEmpty
+        
+        return VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            Text("SECURITY AUDIT")
+                .font(.system(size: 12, weight: .bold))
+                .tracking(1)
+                .foregroundColor(AppTheme.Colors.secondary)
+            
+            if hasRealData {
+                VStack(spacing: AppTheme.Spacing.sm) {
+                    ForEach(Array(logEntries.prefix(5)), id: \.id) { entry in
+                        AuditRow(
+                            icon: entry.encrypted ? "lock.fill" : "globe",
+                            iconBgColor: entry.encrypted ? AppTheme.Colors.secondary.opacity(0.1) : AppTheme.Colors.primary.opacity(0.1),
+                            iconColor: entry.encrypted ? AppTheme.Colors.secondary : AppTheme.Colors.primary,
+                            title: entry.serverCountry ?? "Unknown",
+                            subtitle: entry.encrypted ? "AES-256 Encrypted" : "Connection established",
+                            time: timeAgo(from: entry.connectedAt),
+                            opacity: 1.0
+                        )
+                    }
+                }
+            } else {
+                VStack(spacing: AppTheme.Spacing.sm) {
+                    AuditRow(
+                        icon: "globe",
+                        iconBgColor: AppTheme.Colors.primary.opacity(0.1),
+                        iconColor: AppTheme.Colors.primary,
+                        title: "New York, USA",
+                        subtitle: "Connection established",
+                        time: "2m ago",
+                        opacity: 1.0
+                    )
+                    
+                    AuditRow(
+                        icon: "lock.fill",
+                        iconBgColor: AppTheme.Colors.secondary.opacity(0.1),
+                        iconColor: AppTheme.Colors.secondary,
+                        title: "Encrypted Tunnel",
+                        subtitle: "AES-256 Protocol active",
+                        time: "14m ago",
+                        opacity: 0.6
+                    )
+                }
+            }
+        }
+        .padding(AppTheme.Spacing.md)
+        .background(Color(hex: "#161616"))
+        .cornerRadius(AppTheme.Radius.xl)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Speed Chart View
+struct SpeedChartView: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            
+            // Grid lines
+            ForEach(0..<5) { i in
+                let y = height * CGFloat(i) / 4.0
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: y))
+                    path.addLine(to: CGPoint(x: width, y: y))
+                }
+                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+            }
+            
+            // Trend line
+            Path { path in
+                let points: [CGFloat] = [0.6, 0.2, 0.5, 0.3, 0.7, 0.25, 0.4]
+                let step = width / CGFloat(points.count - 1)
+                
+                path.move(to: CGPoint(x: 0, y: height * points[0]))
+                for i in 1..<points.count {
+                    let x = step * CGFloat(i)
+                    let y = height * points[i]
+                    let prevX = step * CGFloat(i - 1)
+                    let prevY = height * points[i - 1]
+                    let controlX1 = prevX + step * 0.5
+                    let controlX2 = x - step * 0.5
+                    path.addCurve(
+                        to: CGPoint(x: x, y: y),
+                        control1: CGPoint(x: controlX1, y: prevY),
+                        control2: CGPoint(x: controlX2, y: y)
+                    )
+                }
+            }
+            .stroke(
+                AppTheme.Colors.primaryContainer,
+                style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+            )
+            .shadow(color: AppTheme.Colors.primaryContainer.opacity(0.3), radius: 6, y: 4)
+        }
+    }
+}
+
+// MARK: - Stat Grid Item
+struct StatGridItem: View {
+    let icon: String
+    let label: String
+    let value: String
+    let unit: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(AppTheme.Colors.primary)
+                
+                Text(label)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.secondary)
+            }
+            
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(value)
+                    .font(.system(size: 24, weight: .bold, design: .monospaced))
+                    .foregroundColor(AppTheme.Colors.onSurface)
+                
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(AppTheme.Colors.secondary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppTheme.Spacing.md)
+        .background(Color(hex: "#161616"))
+        .cornerRadius(AppTheme.Radius.xl)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Audit Row
+struct AuditRow: View {
+    let icon: String
+    let iconBgColor: Color
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+    let time: String
+    let opacity: Double
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(iconBgColor)
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: icon)
+                        .font(.system(size: 14))
+                        .foregroundColor(iconColor)
+                )
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(AppTheme.Colors.onSurface)
+                
+                Text(subtitle)
+                    .font(.system(size: 10))
+                    .foregroundColor(AppTheme.Colors.secondary)
+            }
+            
+            Spacer()
+            
+            Text(time)
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundColor(AppTheme.Colors.secondary)
+        }
+        .opacity(opacity)
+    }
+}
+
+#Preview {
+    StatsView(vpnManager: VPNManager())
+}

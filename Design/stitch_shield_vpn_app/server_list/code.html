@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-primary-container": "#fffaff",
+                    "tertiary-container": "#757474",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-background": "#e3e2e2",
+                    "surface-tint": "#ffb4a9",
+                    "on-primary": "#690001",
+                    "error-container": "#93000a",
+                    "surface-container-low": "#1b1c1c",
+                    "surface-container-lowest": "#0d0e0f",
+                    "on-primary-fixed": "#410000",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "error": "#ffb4ab",
+                    "on-surface-variant": "#e7bdb7",
+                    "on-surface": "#e3e2e2",
+                    "on-secondary-container": "#b7b4b4",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "primary": "#ffb4a9",
+                    "primary-fixed-dim": "#ffb4a9",
+                    "surface-container-highest": "#343535",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-tertiary-container": "#fffbfb",
+                    "on-error-container": "#ffdad6",
+                    "outline": "#ae8882",
+                    "outline-variant": "#5d3f3b",
+                    "surface": "#121414",
+                    "surface-bright": "#383939",
+                    "surface-dim": "#121414",
+                    "surface-container-high": "#292a2a",
+                    "background": "#121414",
+                    "inverse-surface": "#e3e2e2",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "inverse-on-surface": "#303031",
+                    "on-tertiary": "#303030",
+                    "inverse-primary": "#c00005",
+                    "primary-container": "#e2231a",
+                    "surface-container": "#1f2020",
+                    "surface-variant": "#343535",
+                    "secondary": "#c8c6c5",
+                    "tertiary-fixed": "#e5e2e1",
+                    "primary-fixed": "#ffdad5",
+                    "tertiary": "#c8c6c5",
+                    "secondary-container": "#474746",
+                    "on-primary-fixed-variant": "#930003",
+                    "on-secondary": "#313030",
+                    "on-error": "#690005"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "24px",
+                    "xs": "8px",
+                    "gutter": "16px",
+                    "xl": "48px",
+                    "base": "4px",
+                    "lg": "32px",
+                    "safe-margin": "20px",
+                    "sm": "16px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "headline-xl": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "label-caps": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "data-mono": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "30px", "fontWeight": "700"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "data-mono": ["16px", {"lineHeight": "24px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #0A0A0A; color: #e3e2e2; }
+        .server-list-item { transition: background-color 0.2s ease; }
+        .server-list-item:active { transform: scale(0.98); }
+        .red-glow { text-shadow: 0 0 10px rgba(226, 35, 26, 0.6); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-background flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface text-primary dark:text-primary flex justify-between items-center w-full px-safe-margin h-16 sticky top-0 z-40">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">shield</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tighter text-primary dark:text-primary">SENTRY VPN</h1>
+</div>
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden border border-outline-variant/30">
+<img class="w-full h-full object-cover" data-alt="A professional high-contrast portrait of a cybersecurity expert in a dark techwear outfit. The image features dramatic red backlighting against a Vantablack background, creating a sharp, authoritative silhouette. The aesthetic is ultra-modern and mission-critical, with clean lines and a focused expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1_LllPeo1RhXgE164ZzqTI1ERpGVJB24_d2UOLOx07NF4dPqtZFd17tfdkmdGKn5ncQQFiJRCck2yui_qIjw5cDqZwsa34b4JX1QSb1rZrTBMzo-iOf8DqCwjQdo2CXyF4Nr88yD4gZ3CU6F-xN7TBRrCN929SQzTH4yaqfq3y7kEts_UT3ehIK-UTIlvB_nu_k5QNuX_kYqI9ZFznS7wJCnD3rX0LS9izqrSTw_1LflQVqOsj8IwI_FeKOgDHXgaWUhKEkvSurz5"/>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto px-safe-margin pb-32 custom-scrollbar">
+<!-- Search Bar Area -->
+<div class="mt-sm sticky top-16 z-30 bg-background/80 backdrop-blur-md py-4">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-secondary/50">search</span>
+<input class="w-full bg-surface-container-high border-none rounded-xl h-12 pl-12 pr-4 text-on-surface placeholder:text-secondary/40 focus:ring-1 focus:ring-primary-container transition-all" placeholder="Search servers or countries" type="text"/>
+</div>
+</div>
+<!-- Recommended Section -->
+<section class="mt-md">
+<h2 class="font-label-caps text-label-caps text-secondary mb-sm uppercase">Recommended</h2>
+<div class="bg-surface-container-low rounded-xl p-md border border-outline-variant/10 relative overflow-hidden group cursor-pointer active:scale-[0.99] transition-transform">
+<div class="absolute inset-0 bg-gradient-to-r from-primary-container/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center shadow-[0_0_15px_rgba(226,35,26,0.3)]">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Fastest Server</h3>
+<p class="text-body-sm font-body-sm text-secondary/70">Connect to the lowest latency node automatically</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-data-mono text-data-mono text-[#4ADE80]">12ms</span>
+<span class="material-symbols-outlined text-primary-container">arrow_forward_ios</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Countries List -->
+<section class="mt-lg">
+<div class="flex items-center justify-between mb-sm">
+<h2 class="font-label-caps text-label-caps text-secondary uppercase">All Locations</h2>
+<span class="font-label-caps text-label-caps text-primary-container cursor-pointer">Filter</span>
+</div>
+<div class="space-y-base">
+<!-- Selected Server -->
+<div class="server-list-item bg-surface-container-high rounded-lg h-16 flex items-center px-md relative border-l-4 border-primary-container shadow-lg shadow-primary-container/5">
+<div class="flex items-center gap-md flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="A high-quality, vibrant flag of the United States displayed as a circular icon. The lighting is crisp and even, suitable for a professional dark-themed UI. The image fits the minimal and high-performance VPN brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9aHBgJXDOSOjrdI2H3vnMY5Q_jsFgJfZNzrG-v9ORS79S6RgpzUsX1TE2BMpGrxPnbLYTyLtEkw2_4Oz30r-njUj282Cg7DOsFCSbW42YwY71nxU7RNcXFZ6KgbLiax0D9ohygoTrbR0tXMGlJZiZLFEEd-jP-WXirqlfyhQmoqq-GHc71IMyGJgZ6qFwNu8G-Zg3AioDZ4off1EMU6HN011B931GZjWK0dxDVblBuP-2_e2gVFeTknnzft3xphQZqXW1gvO1pjxM"/>
+</div>
+<div>
+<h4 class="font-body-md text-body-md text-on-surface font-bold">United States</h4>
+<p class="text-[12px] font-body-sm text-secondary/60">New York City</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-data-mono text-data-mono text-[#4ADE80]">32ms</span>
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Server Entry -->
+<div class="server-list-item hover:bg-surface-container-low rounded-lg h-16 flex items-center px-md group cursor-pointer">
+<div class="flex items-center gap-md flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="A crisp, high-resolution circular icon of the United Kingdom flag. The design is modern and clean, optimized for a dark professional application environment. The colors are rich and distinct, fitting a premium security software aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqakQAzOUYBz7QF-XzyXVh9yVhE9khM6WQMwKYskcD8FItLt6wkCDgpaeAXwNbs4UHRMui-uQUFydXNxtZH9NKAW_QTlpNf0aLKlcnPpMqntpfHayyELDj8snzgHUOzgei2k3ffKBprYBW4OgEp3m4G_aKgh0URfvfdmswhgDDu3Rkd13RTSxCAXT-nRDYKS6o94JWQSGXNUqSjmV8t2S6oUJqCbJj4DLPWjcXVObNFIUyaCZlKUtfh2_amCpb69QcWMq0k0OvQwgp"/>
+</div>
+<div>
+<h4 class="font-body-md text-body-md text-on-surface">United Kingdom</h4>
+<p class="text-[12px] font-body-sm text-secondary/60">London</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-data-mono text-data-mono text-[#4ADE80]">45ms</span>
+<span class="material-symbols-outlined text-secondary/20 group-hover:text-secondary/40">chevron_right</span>
+</div>
+</div>
+<!-- Server Entry -->
+<div class="server-list-item hover:bg-surface-container-low rounded-lg h-16 flex items-center px-md group cursor-pointer">
+<div class="flex items-center gap-md flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="A professional circular icon representing the German flag. The graphic is sharp with high color fidelity, designed for a high-performance VPN dashboard. It maintains the minimalist, cyber-technic style of the application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqcjgVilstVfK-Xb7ZxCxOISjCEnoVpvqm845RFoBJntXskUQNxvcDlksIavErs658oZvyVTrvZnk5Eb3gTzIQ7ldJ9RRAO0oy0fx3EcVMT4M56fTvub1tqVg23PK1gFvHiYq9sa5QPB5nL77k-7veDbqUdotBBherbgAXxyC6Mh9WTQOqkniRzFee5Z-DkADqfnG4Sa-1_C8RYJABzDpCPFug9JuWOvgBf2M_BT7lUYS5GwnmRn874wgwrT5NGVRLyUj_I1woWrV-"/>
+</div>
+<div>
+<h4 class="font-body-md text-body-md text-on-surface">Germany</h4>
+<p class="text-[12px] font-body-sm text-secondary/60">Frankfurt</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-data-mono text-data-mono text-[#4ADE80]">28ms</span>
+<span class="material-symbols-outlined text-secondary/20 group-hover:text-secondary/40">chevron_right</span>
+</div>
+</div>
+<!-- Server Entry (Medium Latency) -->
+<div class="server-list-item hover:bg-surface-container-low rounded-lg h-16 flex items-center px-md group cursor-pointer">
+<div class="flex items-center gap-md flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="A minimalist and sharp circular representation of the Japanese flag. The white background is pristine and the red circle is vibrant, fitting seamlessly into a high-end, secure digital interface. Perfect for a mission-critical utility app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA79eC7p9jq5GqXAVreMr2ClSeXIKgxsjvAzBNvOpIcinLErF00CfEJGI10gcSemg0wqbI_KkA4VXf6yao_PFun_dnwDITu2OLocvJt-VrV0IelngNr8GfGbWUfbzOv2xd0zSH_tsvPjCHF9kv_4vzyuD6PSfHDG7R5PSPHPavyufV2nw8brhsJYke-QzOV-Gcb7D1Hk0kX-BT8-hm4x0AyMYJj5am2pthOZfWIhNz26YVeDFnyJKrWTxlHOHySHW9E5YCm9rqtudH5"/>
+</div>
+<div>
+<h4 class="font-body-md text-body-md text-on-surface">Japan</h4>
+<p class="text-[12px] font-body-sm text-secondary/60">Tokyo</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-data-mono text-data-mono text-[#FACC15]">120ms</span>
+<span class="material-symbols-outlined text-secondary/20 group-hover:text-secondary/40">chevron_right</span>
+</div>
+</div>
+<!-- Server Entry -->
+<div class="server-list-item hover:bg-surface-container-low rounded-lg h-16 flex items-center px-md group cursor-pointer">
+<div class="flex items-center gap-md flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="A clean circular flag icon of Canada. The red and white contrasts are sharp, optimized for visibility within a dark UI layout. The visual style is consistent with a professional, secure, and fast digital service." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKbAk6fqqyScUBSdWQp39KCcsYm_P4C4CpAQ2RYpTnSdMTzHflANiLwSOSMHWFeTwAOoTgTd-paKngF4LC3NSTmVfVkF-Cj4C-gC-jnmoDC8bj2S8ArcdxlmP_HrpRNZik-qBtEjPAsKv6zGX2XyGrd6oTs35P4MhI_JT-JjIgkv5LRyuEzlajn_s98T5Sz5PJdvmeoPh3uCtoiosNkI5tU7tf3vVYaQfFoTI-azBOfXnoZyZcsjhQgGdFz7EA3kjizh4X0iY-NDGh"/>
+</div>
+<div>
+<h4 class="font-body-md text-body-md text-on-surface">Canada</h4>
+<p class="text-[12px] font-body-sm text-secondary/60">Toronto</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-data-mono text-data-mono text-[#4ADE80]">38ms</span>
+<span class="material-symbols-outlined text-secondary/20 group-hover:text-secondary/40">chevron_right</span>
+</div>
+</div>
+<!-- Server Entry -->
+<div class="server-list-item hover:bg-surface-container-low rounded-lg h-16 flex items-center px-md group cursor-pointer">
+<div class="flex items-center gap-md flex-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="A high-contrast circular icon of the Singapore flag. The details are crisp and clear, designed to look premium in a cybersecurity-focused VPN interface. The aesthetic balance reflects reliability and speed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1-VAUXCq1Y7KrzAEKQh6K7zPEVo1CK469vZDWYlhspBpqDVZt1tmXOYAheM0sNRYe5poA73vKIn6-Usja_8gLhPaKzVuO0CMAE-Rgjmx8jjv_RZ0_J3bTyUZhu555mIFbu0FY0A0T_EYpHOoKPwBHZ753fdOadjOEEMfPsbhTGUFaBc1W1BdHpaN9UJWekO3anF3WpagOOYgaXyEI5V6n9DsRXI_zDyS54zUZm7-IUYVG9QJxWMzmSRT8jQv7Q85KSM0LH19ExLPw"/>
+</div>
+<div>
+<h4 class="font-body-md text-body-md text-on-surface">Singapore</h4>
+<p class="text-[12px] font-body-sm text-secondary/60">Singapore Central</p>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-data-mono text-data-mono text-[#4ADE80]">88ms</span>
+<span class="material-symbols-outlined text-secondary/20 group-hover:text-secondary/40">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 pb-safe px-md bg-surface-container-lowest dark:bg-surface-container-lowest border-t border-outline-variant/10">
+<!-- Home -->
+<button class="flex items-center justify-center text-secondary dark:text-secondary hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+</button>
+<!-- Servers (Active) -->
+<button class="flex items-center justify-center text-primary dark:text-primary drop-shadow-[0_0_8px_rgba(226,35,26,0.4)] scale-110 duration-200 ease-out">
+<span class="material-symbols-outlined" data-icon="dns" style="font-variation-settings: 'FILL' 1;">dns</span>
+</button>
+<!-- Stats -->
+<button class="flex items-center justify-center text-secondary dark:text-secondary hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined" data-icon="equalizer">equalizer</span>
+</button>
+<!-- Settings -->
+<button class="flex items-center justify-center text-secondary dark:text-secondary hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</nav>
+<script>
+        // Simple interactive script for row selection feedback
+        document.querySelectorAll('.server-list-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Clear others
+                document.querySelectorAll('.server-list-item').forEach(i => {
+                    i.classList.remove('bg-surface-container-high', 'border-l-4', 'border-primary-container', 'shadow-lg', 'shadow-primary-container/5');
+                    i.classList.add('hover:bg-surface-container-low');
+                    const text = i.querySelector('h4');
+                    if(text) text.classList.remove('font-bold');
+                    const icon = i.querySelector('.material-symbols-outlined:last-child');
+                    if(icon && icon.textContent === 'check_circle') {
+                        icon.textContent = 'chevron_right';
+                        icon.style.fontVariationSettings = "'FILL' 0";
+                        icon.classList.add('text-secondary/20');
+                        icon.classList.remove('text-primary-container');
+                    }
+                });
+
+                // Set this one
+                item.classList.add('bg-surface-container-high', 'border-l-4', 'border-primary-container', 'shadow-lg', 'shadow-primary-container/5');
+                item.classList.remove('hover:bg-surface-container-low');
+                const text = item.querySelector('h4');
+                if(text) text.classList.add('font-bold');
+                const icon = item.querySelector('.material-symbols-outlined:last-child');
+                if(icon) {
+                    icon.textContent = 'check_circle';
+                    icon.style.fontVariationSettings = "'FILL' 1";
+                    icon.classList.remove('text-secondary/20');
+                    icon.classList.add('text-primary-container');
+                }
+            });
+        });
+    </script>
+</body></html>

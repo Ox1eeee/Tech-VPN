@@ -8,14 +8,11 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var authService = AuthService.shared
+    @StateObject private var vpnManager = VPNManager()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        MainTabView(vpnManager: vpnManager, authService: authService)
     }
 }
 

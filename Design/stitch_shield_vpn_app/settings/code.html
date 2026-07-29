@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>SENTRY VPN - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0A0A0A;
+            color: #e3e2e2;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .ios-row:active {
+            background-color: #222222;
+        }
+
+        .switch-track {
+            transition: background-color 0.2s ease;
+        }
+        
+        .switch-thumb {
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input:checked + .switch-track {
+            background-color: #E2231A;
+            box-shadow: 0 0 12px rgba(226, 35, 26, 0.3);
+        }
+
+        input:checked + .switch-track .switch-thumb {
+            transform: translateX(20px);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A0A0A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-primary-container": "#fffaff",
+                        "tertiary-container": "#757474",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-background": "#e3e2e2",
+                        "surface-tint": "#ffb4a9",
+                        "on-primary": "#690001",
+                        "error-container": "#93000a",
+                        "surface-container-low": "#1b1c1c",
+                        "surface-container-lowest": "#0d0e0f",
+                        "on-primary-fixed": "#410000",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#e7bdb7",
+                        "on-surface": "#e3e2e2",
+                        "on-secondary-container": "#b7b4b4",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "primary": "#ffb4a9",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "surface-container-highest": "#343535",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-container": "#fffbfb",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#ae8882",
+                        "outline-variant": "#5d3f3b",
+                        "surface": "#121414",
+                        "surface-bright": "#383939",
+                        "surface-dim": "#121414",
+                        "surface-container-high": "#292a2a",
+                        "background": "#121414",
+                        "inverse-surface": "#e3e2e2",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "inverse-on-surface": "#303031",
+                        "on-tertiary": "#303030",
+                        "inverse-primary": "#c00005",
+                        "primary-container": "#e2231a",
+                        "surface-container": "#1f2020",
+                        "surface-variant": "#343535",
+                        "secondary": "#c8c6c5",
+                        "tertiary-fixed": "#e5e2e1",
+                        "primary-fixed": "#ffdad5",
+                        "tertiary": "#c8c6c5",
+                        "secondary-container": "#474746",
+                        "on-primary-fixed-variant": "#930003",
+                        "on-secondary": "#313030",
+                        "on-error": "#690005"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "8px",
+                        "gutter": "16px",
+                        "xl": "48px",
+                        "base": "4px",
+                        "lg": "32px",
+                        "safe-margin": "20px",
+                        "sm": "16px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "headline-xl": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "data-mono": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "30px", "fontWeight": "700"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-lg": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "data-mono": ["16px", {"lineHeight": "24px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-background selection:bg-primary/30">
+<!-- Top App Bar -->
+<header class="bg-surface dark:bg-surface flex justify-between items-center w-full px-safe-margin h-16 fixed top-0 z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="shield">shield</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold tracking-tighter text-primary dark:text-primary">SENTRY VPN</h1>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant/20 flex items-center justify-center overflow-hidden hover:opacity-80 transition-opacity cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a high-tech cybersecurity analyst, wearing sleek modern glasses, set against a dark background with subtle red accent lighting. The image captures a sense of professional authority and high-performance security, consistent with a minimalist and cyber-technic brand identity focused on deep blacks and vibrant reds." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5AyWA_gojEar-lu5b3o2gvXRtjrJVZsKmlIOd_bY8isC6IYYQKLTNmJu1NeS6tZ4OWdRDi6Ep3r2w0jPuAVsE-0dhnyyRTXMfMDU0aBqTmCxypJjkHQ_ow7yNuVZqIsWaAbcQDFlMQ8zoUVT5ntnFZbgXu2UD-olvnHCNUe_i0QVyZngzt-yVko0jzOt2mH769DHqU_R-NN8b5KzxMPUgnpoezMRh6JnGtflRrbk5aiSzrc79ahnGZAYv3cPiAEz7dNXv53O2J8ix"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-20 pb-32 px-safe-margin max-w-2xl mx-auto">
+<!-- Account Section -->
+<section class="mb-8">
+<h2 class="font-label-caps text-label-caps text-secondary px-4 mb-2 uppercase tracking-widest">ACCOUNT</h2>
+<div class="bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10">
+<div class="ios-row flex items-center justify-between p-4 cursor-pointer transition-colors border-b border-outline-variant/10">
+<span class="font-body-md text-on-surface">Subscription</span>
+<div class="flex items-center gap-2">
+<span class="text-body-sm text-secondary">Premium Plus</span>
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<div class="ios-row flex items-center justify-between p-4 cursor-pointer transition-colors border-b border-outline-variant/10">
+<span class="font-body-md text-on-surface">Email</span>
+<div class="flex items-center gap-2">
+<span class="text-body-sm text-secondary">user@sentry.io</span>
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<div class="ios-row flex items-center justify-between p-4 cursor-pointer transition-colors">
+<span class="font-body-md text-on-surface">Billing History</span>
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Connection Section -->
+<section class="mb-8">
+<h2 class="font-label-caps text-label-caps text-secondary px-4 mb-2 uppercase tracking-widest">CONNECTION</h2>
+<div class="bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10">
+<div class="flex items-center justify-between p-4 border-b border-outline-variant/10">
+<span class="font-body-md text-on-surface">Auto-Connect</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="switch-track w-11 h-6 bg-surface-container-highest rounded-full peer-focus:outline-none">
+<div class="switch-thumb absolute top-[2px] left-[2px] bg-white border-none h-5 w-5 rounded-full shadow-sm"></div>
+</div>
+</label>
+</div>
+<div class="ios-row flex items-center justify-between p-4 cursor-pointer transition-colors border-b border-outline-variant/10">
+<span class="font-body-md text-on-surface">VPN Protocol</span>
+<div class="flex items-center gap-2">
+<span class="text-body-sm text-secondary">WireGuard®</span>
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<div class="ios-row flex items-center justify-between p-4 cursor-pointer transition-colors">
+<span class="font-body-md text-on-surface">Split Tunneling</span>
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Security Section -->
+<section class="mb-12">
+<h2 class="font-label-caps text-label-caps text-secondary px-4 mb-2 uppercase tracking-widest">SECURITY</h2>
+<div class="bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10">
+<div class="flex items-center justify-between p-4 border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container fill-icon" data-icon="shield">shield</span>
+<span class="font-body-md text-on-surface">Kill Switch</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="switch-track w-11 h-6 bg-surface-container-highest rounded-full peer-focus:outline-none">
+<div class="switch-thumb absolute top-[2px] left-[2px] bg-white border-none h-5 w-5 rounded-full shadow-sm"></div>
+</div>
+</label>
+</div>
+<div class="ios-row flex items-center justify-between p-4 cursor-pointer transition-colors border-b border-outline-variant/10">
+<span class="font-body-md text-on-surface">Threat Protection</span>
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="ios-row flex items-center justify-between p-4 cursor-pointer transition-colors">
+<span class="font-body-md text-on-surface">Invisible on LAN</span>
+<span class="material-symbols-outlined text-secondary text-lg" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Logout Action -->
+<button class="w-full flex items-center justify-center p-4 bg-surface-container rounded-xl border border-outline-variant/10 hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="font-label-caps text-label-caps text-primary-container uppercase tracking-widest">Log Out</span>
+</button>
+<p class="text-center text-body-sm text-secondary/40 mt-8 font-data-mono">SENTRY VPN v4.12.0</p>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 pb-safe px-md bg-surface-container-lowest dark:bg-surface-container-lowest border-t border-outline-variant/10">
+<button class="flex items-center justify-center text-secondary dark:text-secondary hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="home">home</span>
+</button>
+<button class="flex items-center justify-center text-secondary dark:text-secondary hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="dns">dns</span>
+</button>
+<button class="flex items-center justify-center text-secondary dark:text-secondary hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-2xl" data-icon="equalizer">equalizer</span>
+</button>
+<button class="flex items-center justify-center text-primary dark:text-primary drop-shadow-[0_0_8px_rgba(226,35,26,0.4)] scale-110 duration-200 ease-out">
+<span class="material-symbols-outlined text-2xl fill-icon" data-icon="settings">settings</span>
+</button>
+</nav>
+<script>
+        // Micro-interaction for list items
+        document.querySelectorAll('.ios-row').forEach(row => {
+            row.addEventListener('click', () => {
+                row.style.opacity = '0.5';
+                setTimeout(() => {
+                    row.style.opacity = '1';
+                }, 100);
+            });
+        });
+
+        // Haptic feedback simulation for switches
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(10);
+                }
+            });
+        });
+    </script>
+</body></html>
