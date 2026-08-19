@@ -11,6 +11,7 @@ import Combine
 struct HomeView: View {
     @ObservedObject var vpnManager: VPNManager
     @ObservedObject var authService: AuthService
+    var onProfileTap: () -> Void = {}
     
     @State private var showServerList = false
     @State private var connectionTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -62,19 +63,21 @@ struct HomeView: View {
     private var topBar: some View {
         HStack {
             HStack(spacing: 12) {
-                // Profile avatar placeholder
-                Circle()
-                    .fill(AppTheme.Colors.surfaceContainerHigh)
-                    .frame(width: 32, height: 32)
-                    .overlay(
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(AppTheme.Colors.secondary)
-                    )
-                    .overlay(
-                        Circle()
-                            .stroke(AppTheme.Colors.outlineVariant.opacity(0.2), lineWidth: 1)
-                    )
+                // Profile avatar (clickable)
+                Button(action: onProfileTap) {
+                    Circle()
+                        .fill(AppTheme.Colors.surfaceContainerHigh)
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(AppTheme.Colors.secondary)
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(AppTheme.Colors.outlineVariant.opacity(0.2), lineWidth: 1)
+                        )
+                }
                 
                 Text("TECH VPN")
                     .font(.system(size: 20, weight: .bold))
@@ -84,7 +87,7 @@ struct HomeView: View {
             
             Spacer()
             
-            Button(action: {}) {
+            Button(action: onProfileTap) {
                 Image(systemName: "gearshape.fill")
                     .font(.system(size: 22))
                     .foregroundColor(AppTheme.Colors.secondary)
@@ -239,7 +242,7 @@ struct HomeView: View {
             MetricCard(
                 icon: "arrow.down",
                 label: "DOWN",
-                value: vpnManager.isConnected ? "12.4" : "0.0",
+                value: "0.0",
                 unit: "MBPS"
             )
             
@@ -247,7 +250,7 @@ struct HomeView: View {
             MetricCard(
                 icon: "arrow.up",
                 label: "UP",
-                value: vpnManager.isConnected ? "1.2" : "0.0",
+                value: "0.0",
                 unit: "MBPS"
             )
         }

@@ -178,8 +178,8 @@ struct ServerListView: View {
                     Spacer()
                     
                     VStack(alignment: .trailing, spacing: 4) {
-                        Text("12ms")
-                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        Text("Auto")
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundColor(AppTheme.Colors.success)
                         
                         Image(systemName: "chevron.right")
@@ -244,7 +244,7 @@ struct ServerListView: View {
                 }
             } catch {
                 await MainActor.run {
-                    servers = Self.sampleServers
+                    errorMessage = error.localizedDescription
                     isLoading = false
                 }
             }
@@ -304,20 +304,6 @@ struct ServerListView: View {
         
         dismiss()
     }
-    
-    // MARK: - Sample Servers (fallback / demo)
-    static let sampleServers: [VPNServer] = [
-        VPNServer(id: 1, name: "United States", country: "US", ipAddress: "0.0.0.0", load: 25),
-        VPNServer(id: 2, name: "United Kingdom", country: "UK", ipAddress: "0.0.0.0", load: 40),
-        VPNServer(id: 3, name: "Germany", country: "DE", ipAddress: "0.0.0.0", load: 30),
-        VPNServer(id: 4, name: "Japan", country: "JP", ipAddress: "0.0.0.0", load: 65),
-        VPNServer(id: 5, name: "Canada", country: "CA", ipAddress: "0.0.0.0", load: 35),
-        VPNServer(id: 6, name: "Singapore", country: "SG", ipAddress: "0.0.0.0", load: 20),
-        VPNServer(id: 7, name: "Australia", country: "AU", ipAddress: "0.0.0.0", load: 45),
-        VPNServer(id: 8, name: "France", country: "FR", ipAddress: "0.0.0.0", load: 50),
-        VPNServer(id: 9, name: "India", country: "IN", ipAddress: "0.0.0.0", load: 55),
-        VPNServer(id: 10, name: "Brazil", country: "BR", ipAddress: "0.0.0.0", load: 70)
-    ]
 }
 
 // MARK: - Server Row
@@ -326,16 +312,7 @@ struct ServerRowView: View {
     let isSelected: Bool
     let onTap: () -> Void
     
-    private var latencyMs: Int {
-        // Simulate latency based on load
-        switch server.load {
-        case 0..<30: return Int.random(in: 20...40)
-        case 30..<60: return Int.random(in: 40...80)
-        default: return Int.random(in: 100...200)
-        }
-    }
-    
-    private var latencyColor: Color {
+    private var loadColor: Color {
         if server.load < 50 { return AppTheme.Colors.success }
         else if server.load < 70 { return AppTheme.Colors.warning }
         else { return AppTheme.Colors.error }
@@ -369,10 +346,10 @@ struct ServerRowView: View {
                 
                 Spacer()
                 
-                // Latency
-                Text("\(latencyMs)ms")
+                // Load
+                Text("\(server.load)%")
                     .font(.system(size: 14, weight: .medium, design: .monospaced))
-                    .foregroundColor(latencyColor)
+                    .foregroundColor(loadColor)
                 
                 // Selection indicator
                 if isSelected {
@@ -407,19 +384,7 @@ struct ServerRowView: View {
     }
     
     private var serverCity: String {
-        let cities: [String: String] = [
-            "US": "New York City",
-            "UK": "London",
-            "DE": "Frankfurt",
-            "JP": "Tokyo",
-            "CA": "Toronto",
-            "SG": "Singapore Central",
-            "AU": "Sydney",
-            "FR": "Paris",
-            "IN": "Mumbai",
-            "BR": "São Paulo"
-        ]
-        return cities[server.country.uppercased()] ?? server.country
+        return server.country
     }
 }
 

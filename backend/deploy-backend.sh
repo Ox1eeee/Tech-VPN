@@ -9,8 +9,8 @@ echo "  Tech VPN — Deploy Backend to VPS"
 echo "============================================"
 echo ""
 
-read -p "  Server IP address [148.113.44.176]: " SERVER_IP
-SERVER_IP="${SERVER_IP:-148.113.44.176}"
+read -p "  Server IP address [169.58.172.181]: " SERVER_IP
+SERVER_IP="${SERVER_IP:-169.58.172.181}"
 read -p "  SSH username [root]: " SSH_USER
 SSH_USER="${SSH_USER:-root}"
 

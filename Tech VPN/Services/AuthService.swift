@@ -8,26 +8,42 @@
 import Foundation
 import SwiftUI
 import Combine
+import Supabase
 
 class AuthService: ObservableObject {
     static let shared = AuthService()
     
     @Published var isAuthenticated: Bool = false
     @Published var currentUser: User?
+    @Published var profile: Profile?
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
-    private let baseURL = "http://148.113.44.176:3000"
-    private let keychain = KeychainHelper.shared
+    private let supabase = SupabaseManager.shared.client
     
     private init() {
-        checkAuthStatus()
+        Task {
+            await checkAuthStatus()
+        }
     }
     
     // MARK: - Check if user is already logged in
-    func checkAuthStatus() {
-        if let token = keychain.readString(forKey: KeychainHelper.tokenKey), !token.isEmpty {
-            isAuthenticated = true
+    func checkAuthStatus() async {
+        do {
+            let session = try await supabase.auth.session
+            await MainActor.run {
+                self.isAuthenticated = true
+                self.currentUser = User(
+                    id: session.user.id.uuidString,
+                    username: session.user.userMetadata["username"]?.value as? String ?? "",
+                    email: session.user.email ?? ""
+                )
+            }
+            await fetchProfile()
+        } catch {
+            await MainActor.run {
+                self.isAuthenticated = false
+            }
         }
     }
     
@@ -39,108 +55,97 @@ class AuthService: ObservableObject {
         }
         
         do {
-            guard let url = URL(string: "\(baseURL)/api/auth/signup") else {
-                throw APIError.invalidURL
-            }
+            let response = try await supabase.auth.signUp(
+                email: email,
+                password: password,
+                data: ["username": .string(username)]
+            )
             
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            
-            let body: [String: String] = [
-                "email": email,
-                "username": username,
-                "password": password
-            ]
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIError.invalidResponse
-            }
-            
-            if (200...299).contains(httpResponse.statusCode) {
-                // Auto-login after signup
-                await login(username: username, password: password)
-            } else {
-                if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                    throw APIError.serverError(errorResponse.error)
+            if response.session != nil {
+                await MainActor.run {
+                    self.currentUser = User(
+                        id: response.user.id.uuidString,
+                        username: username,
+                        email: email
+                    )
+                    self.isAuthenticated = true
+                    self.isLoading = false
                 }
-                throw APIError.httpError(httpResponse.statusCode)
+                await fetchProfile()
+            } else {
+                await MainActor.run {
+                    self.errorMessage = "Please check your email to confirm your account."
+                    self.isLoading = false
+                }
             }
         } catch {
             await MainActor.run {
-                errorMessage = error.localizedDescription
-                isLoading = false
+                self.errorMessage = error.localizedDescription
+                self.isLoading = false
             }
         }
     }
     
     // MARK: - Login
-    func login(username: String, password: String) async {
+    func login(email: String, password: String) async {
         await MainActor.run {
             isLoading = true
             errorMessage = nil
         }
         
         do {
-            guard let url = URL(string: "\(baseURL)/api/auth/login") else {
-                throw APIError.invalidURL
-            }
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            
-            let body: [String: String] = [
-                "username": username,
-                "password": password
-            ]
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIError.invalidResponse
-            }
-            
-            guard (200...299).contains(httpResponse.statusCode) else {
-                if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                    throw APIError.serverError(errorResponse.error)
-                }
-                throw APIError.httpError(httpResponse.statusCode)
-            }
-            
-            let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
-            
-            // Save token and credentials to Keychain
-            keychain.save(string: authResponse.token, forKey: KeychainHelper.tokenKey)
-            keychain.save(string: username, forKey: KeychainHelper.usernameKey)
-            keychain.save(string: password, forKey: KeychainHelper.vpnPasswordKey)
+            let session = try await supabase.auth.signIn(
+                email: email,
+                password: password
+            )
             
             await MainActor.run {
-                currentUser = authResponse.user
-                isAuthenticated = true
-                isLoading = false
+                self.currentUser = User(
+                    id: session.user.id.uuidString,
+                    username: session.user.userMetadata["username"]?.value as? String ?? "",
+                    email: session.user.email ?? ""
+                )
+                self.isAuthenticated = true
+                self.isLoading = false
             }
+            await fetchProfile()
         } catch {
             await MainActor.run {
-                errorMessage = error.localizedDescription
-                isLoading = false
+                self.errorMessage = error.localizedDescription
+                self.isLoading = false
             }
+        }
+    }
+    
+    // MARK: - Fetch Profile from Supabase
+    func fetchProfile() async {
+        do {
+            let session = try await supabase.auth.session
+            let profile: Profile = try await supabase
+                .from("profiles")
+                .select()
+                .eq("id", value: session.user.id.uuidString)
+                .single()
+                .execute()
+                .value
+            
+            await MainActor.run {
+                self.profile = profile
+            }
+        } catch {
+            print("Failed to fetch profile: \(error.localizedDescription)")
         }
     }
     
     // MARK: - Logout
     func logout() {
-        keychain.delete(forKey: KeychainHelper.tokenKey)
-        keychain.delete(forKey: KeychainHelper.usernameKey)
-        keychain.delete(forKey: KeychainHelper.vpnPasswordKey)
-        
-        DispatchQueue.main.async {
-            self.isAuthenticated = false
-            self.currentUser = nil
+        Task {
+            try? await supabase.auth.signOut()
+            await MainActor.run {
+                self.isAuthenticated = false
+                self.currentUser = nil
+                self.profile = nil
+            }
         }
     }
 }

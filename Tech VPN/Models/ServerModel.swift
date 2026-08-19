@@ -22,6 +22,14 @@ struct VPNServer: Identifiable, Codable {
         case load
     }
     
+    init(id: Int, name: String, country: String, ipAddress: String, load: Int) {
+        self.id = id
+        self.name = name
+        self.country = country
+        self.ipAddress = ipAddress
+        self.load = load
+    }
+    
     var flagEmoji: String {
         let countryFlags: [String: String] = [
             "US": "🇺🇸", "UK": "🇬🇧", "DE": "🇩🇪", "FR": "🇫🇷",

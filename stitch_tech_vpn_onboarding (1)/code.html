@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VPN Settings &amp; Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700&amp;family=Sora:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#ffb4a9",
+                        "on-tertiary-container": "#fbfbff",
+                        "on-tertiary": "#00325b",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "outline": "#ae8882",
+                        "inverse-primary": "#c00005",
+                        "outline-variant": "#5d3f3b",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#e4e2e1",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-primary": "#690001",
+                        "on-surface": "#fddbd6",
+                        "surface-container-lowest": "#1a0a08",
+                        "background": "#1f0f0d",
+                        "tertiary-container": "#0076cc",
+                        "surface-bright": "#493431",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#001c38",
+                        "on-background": "#fddbd6",
+                        "on-primary-container": "#fffaff",
+                        "surface-tint": "#ffb4a9",
+                        "surface": "#1f0f0d",
+                        "on-primary-fixed": "#410000",
+                        "secondary": "#c8c6c5",
+                        "inverse-on-surface": "#402b28",
+                        "tertiary-fixed-dim": "#a1c9ff",
+                        "surface-container-high": "#392522",
+                        "tertiary": "#a1c9ff",
+                        "surface-container-highest": "#45302d",
+                        "on-secondary": "#303030",
+                        "surface-variant": "#45302d",
+                        "surface-container": "#2d1b18",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-dim": "#1f0f0d",
+                        "tertiary-fixed": "#d3e4ff",
+                        "primary-container": "#e2231a",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#1b1c1b",
+                        "secondary-container": "#474746",
+                        "inverse-surface": "#fddbd6",
+                        "on-surface-variant": "#e7bdb7",
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed-variant": "#004880",
+                        "primary-fixed": "#ffdad5",
+                        "surface-container-low": "#291714",
+                        "on-secondary-container": "#b6b5b4",
+                        "on-primary-fixed-variant": "#930003"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-gap": "16px",
+                        "container-padding": "24px",
+                        "grid-gutter": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Hanken Grotesk"],
+                        "headline-lg": ["Sora"],
+                        "body-md": ["Hanken Grotesk"],
+                        "subtitle-sm": ["Hanken Grotesk"],
+                        "button-label": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["17px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg": ["37px", { "lineHeight": "44px", "fontWeight": "700" }],
+                        "body-md": ["21px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "subtitle-sm": ["16px", { "lineHeight": "20px", "letterSpacing": "2px", "fontWeight": "700" }],
+                        "button-label": ["16px", { "lineHeight": "16px", "letterSpacing": "2px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background: radial-gradient(circle at 50% 50%, #1a0808 0%, #0a0a0a 100%);
+            color: #e4e2e1;
+            font-family: 'Hanken Grotesk', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding-bottom: 80px; /* Space for bottom nav */
+        }
+        .bg-surface-custom {
+            background-color: #1F2020;
+        }
+        .border-outline-custom {
+            border-color: rgba(93, 63, 59, 0.1);
+        }
+        .text-primary-custom {
+            color: #E2231A;
+        }
+        .bg-primary-custom-15 {
+            background-color: rgba(226, 35, 26, 0.15);
+        }
+        .ambient-glow {
+            box-shadow: 0 0 80px rgba(226, 35, 26, 0.05);
+        }
+        
+        /* Toggle Switch Styles */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #E2231A;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #E2231A;
+        }
+        .toggle-checkbox:checked + .toggle-label:after {
+            transform: translateX(100%);
+            border-color: white;
+        }
+    </style>
+</head>
+<body class="antialiased">
+<!-- Ambient Glow Element -->
+<div class="fixed inset-0 pointer-events-none flex justify-center items-center z-[-1]">
+<div class="w-2/3 h-2/3 rounded-full ambient-glow"></div>
+</div>
+<!-- TopAppBar -->
+<nav class="sticky bg-transparent w-full top-0 left-0 flex justify-end items-center px-container-padding py-4 w-full flat no shadows z-40">
+<!-- Settings page, skip/back might be relevant but design specifies "Skip" as trailing action in JSON, adjusting for typical settings context -->
+<button class="font-button-label text-button-label text-primary cursor-pointer active:scale-95 hover:opacity-80 transition-opacity">
+            Close
+        </button>
+</nav>
+<main class="max-w-md mx-auto px-6 pb-24">
+<!-- Profile Header -->
+<section class="bg-surface-container-low rounded-[24px] p-6 mb-8 border border-outline-custom flex flex-col items-center">
+<div class="w-20 h-20 rounded-full bg-primary-custom-15 flex justify-center items-center mb-4">
+<span class="material-symbols-outlined text-primary-custom text-4xl" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<h1 class="font-headline-lg text-[20px] font-bold text-secondary-fixed mb-1 text-center">John Doe</h1>
+<p class="font-body-sm text-secondary opacity-60 text-[14px] mb-4 text-center">john@example.com</p>
+<div class="bg-primary-custom-15 text-primary-custom font-bold text-[10px] tracking-wider rounded-full px-3 py-1">
+                PREMIUM
+            </div>
+</section>
+<!-- ACCOUNT Section -->
+<section class="mb-6">
+<h2 class="text-secondary opacity-80 text-[12px] font-bold tracking-[2px] uppercase mb-3 pl-4">ACCOUNT</h2>
+<div class="bg-surface-custom rounded-[16px] border border-outline-custom overflow-hidden">
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Subscription</span>
+<div class="flex items-center gap-2">
+<span class="text-secondary text-[14px]">Premium</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Email</span>
+<div class="flex items-center gap-2">
+<span class="text-secondary text-[14px]">john@example.com</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Username</span>
+<div class="flex items-center gap-2">
+<span class="text-secondary text-[14px]">John Doe</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Billing History</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- CONNECTION Section -->
+<section class="mb-6">
+<h2 class="text-secondary opacity-80 text-[12px] font-bold tracking-[2px] uppercase mb-3 pl-4">CONNECTION</h2>
+<div class="bg-surface-custom rounded-[16px] border border-outline-custom overflow-hidden">
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">VPN Protocol</span>
+<div class="flex items-center gap-2">
+<span class="text-secondary text-[14px]">IKEv2</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom">
+<span class="text-secondary-fixed text-[16px]">Auto-Connect</span>
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0 left-0 transition-transform duration-300" id="autoConnectToggle" name="toggle" style="border-color: #5D3F3B;" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-5 rounded-full bg-surface-container cursor-pointer transition-colors duration-300" for="autoConnectToggle"></label>
+</div>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom">
+<span class="text-secondary-fixed text-[16px]">Kill Switch</span>
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0 left-0 transition-transform duration-300 translate-x-full" id="killSwitchToggle" name="toggle" style="border-color: #E2231A;" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors duration-300" for="killSwitchToggle" style="background-color: #E2231A;"></label>
+</div>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Split Tunneling</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- PREFERENCES Section -->
+<section class="mb-6">
+<h2 class="text-secondary opacity-80 text-[12px] font-bold tracking-[2px] uppercase mb-3 pl-4">PREFERENCES</h2>
+<div class="bg-surface-custom rounded-[16px] border border-outline-custom overflow-hidden">
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Appearance</span>
+<div class="flex items-center gap-2">
+<span class="text-secondary text-[14px]">Dark</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Language</span>
+<div class="flex items-center gap-2">
+<span class="text-secondary text-[14px]">English</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4">
+<span class="text-secondary-fixed text-[16px]">Notifications</span>
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0 left-0 transition-transform duration-300 translate-x-full" id="notifToggle" name="toggle" style="border-color: #E2231A;" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors duration-300" for="notifToggle" style="background-color: #E2231A;"></label>
+</div>
+</div>
+</div>
+</section>
+<!-- SUPPORT Section -->
+<section class="mb-8">
+<h2 class="text-secondary opacity-80 text-[12px] font-bold tracking-[2px] uppercase mb-3 pl-4">SUPPORT</h2>
+<div class="bg-surface-custom rounded-[16px] border border-outline-custom overflow-hidden">
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Help Center</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Privacy Policy</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 border-b border-outline-custom hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">Terms of Service</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+<div class="flex justify-between items-center h-[56px] px-4 hover:opacity-80 transition-opacity cursor-pointer active:scale-95">
+<span class="text-secondary-fixed text-[16px]">About</span>
+<div class="flex items-center gap-2">
+<span class="text-secondary text-[14px]">Version 1.0.0</span>
+<span class="material-symbols-outlined text-secondary opacity-60">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Logout Button -->
+<button class="w-full bg-transparent border border-[rgba(226,35,26,0.3)] rounded-full py-4 text-primary-custom font-bold text-[16px] hover:bg-primary-custom-15 transition-colors cursor-pointer active:scale-95 flex justify-center items-center">
+            LOG OUT
+        </button>
+</main>
+<!-- BottomNavBar - Suppressed as per rule: Profile/Settings is a destination but typically task-focused/sub-page in VPN context unless it's a main tab. Assuming it's a main tab based on JSON inclusion -->
+<nav class="bg-transparent fixed bottom-0 w-full z-50 flat no shadows fixed bottom-24 left-0 w-full flex justify-center items-center gap-2 px-container-padding">
+<!-- Dashboard/Home (Inactive) -->
+<div class="bg-secondary opacity-20 w-2 h-2 rounded-full cursor-pointer hover:opacity-100 transition-all duration-300 ease-in-out">
+<span class="sr-only">horizontal_rule</span>
+</div>
+<!-- Servers (Inactive) -->
+<div class="bg-secondary opacity-20 w-2 h-2 rounded-full cursor-pointer hover:opacity-100 transition-all duration-300 ease-in-out">
+<span class="sr-only">horizontal_rule</span>
+</div>
+<!-- Stats (Inactive) -->
+<div class="bg-secondary opacity-20 w-2 h-2 rounded-full cursor-pointer hover:opacity-100 transition-all duration-300 ease-in-out">
+<span class="sr-only">horizontal_rule</span>
+</div>
+<!-- Profile/Settings (Active) -->
+<div class="bg-primary-container w-8 h-2 rounded-full cursor-pointer hover:opacity-100 transition-all duration-300 ease-in-out">
+<span class="sr-only">horizontal_rule</span>
+</div>
+</nav>
+</body></html>

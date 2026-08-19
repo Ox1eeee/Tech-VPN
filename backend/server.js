@@ -20,7 +20,7 @@ let nextUserId = 1;
 let nextConnectionId = 1;
 
 const servers = [
-    { id: 1, name: 'Primary Server', country: 'France', ip_address: '148.113.44.176', load: 10, active: true }
+    { id: 1, name: 'France #1', country: 'France', ip_address: 'fr1.techvpnpro.com', load: 10, active: true }
 ];
 
 // Middleware

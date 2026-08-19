@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Connect &amp; Go</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700&amp;family=Sora:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#2d1b18",
+                        "secondary": "#c8c6c5",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed": "#1b1c1b",
+                        "outline": "#ae8882",
+                        "inverse-primary": "#c00005",
+                        "surface-container-highest": "#45302d",
+                        "on-surface-variant": "#e7bdb7",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-container-high": "#392522",
+                        "secondary-container": "#474746",
+                        "error": "#ffb4ab",
+                        "surface": "#1f0f0d",
+                        "primary": "#ffb4a9",
+                        "on-tertiary": "#00325b",
+                        "on-tertiary-fixed-variant": "#004880",
+                        "on-secondary": "#303030",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "surface-tint": "#ffb4a9",
+                        "tertiary-fixed-dim": "#a1c9ff",
+                        "primary-fixed": "#ffdad5",
+                        "inverse-on-surface": "#402b28",
+                        "on-secondary-container": "#b6b5b4",
+                        "tertiary": "#a1c9ff",
+                        "inverse-surface": "#fddbd6",
+                        "surface-dim": "#1f0f0d",
+                        "tertiary-container": "#0076cc",
+                        "tertiary-fixed": "#d3e4ff",
+                        "on-primary-fixed": "#410000",
+                        "surface-container-low": "#291714",
+                        "on-tertiary-container": "#fbfbff",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#45302d",
+                        "on-surface": "#fddbd6",
+                        "on-primary": "#690001",
+                        "on-primary-container": "#fffaff",
+                        "on-error": "#690005",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "background": "#1f0f0d",
+                        "on-primary-fixed-variant": "#930003",
+                        "secondary-fixed": "#e4e2e1",
+                        "on-tertiary-fixed": "#001c38",
+                        "on-background": "#fddbd6",
+                        "outline-variant": "#5d3f3b",
+                        "surface-container-lowest": "#1a0a08",
+                        "primary-container": "#e2231a",
+                        "surface-bright": "#493431"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-gap": "16px",
+                        "container-padding": "24px",
+                        "grid-gutter": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "subtitle-sm": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "button-label": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Sora"]
+                    },
+                    "fontSize": {
+                        "subtitle-sm": ["16px", { "lineHeight": "20px", "letterSpacing": "2px", "fontWeight": "700" }],
+                        "body-sm": ["17px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "button-label": ["16px", { "lineHeight": "16px", "letterSpacing": "2px", "fontWeight": "700" }],
+                        "body-md": ["21px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["37px", { "lineHeight": "44px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .radial-bg {
+            background: radial-gradient(circle at center, #2a0a08 0%, #1f0f0d 100%);
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen flex flex-col radial-bg text-on-background font-sans relative overflow-hidden">
+<!-- TopAppBar -->
+<header class="flex justify-end items-center px-container-padding py-4 w-full top-0 left-0 bg-transparent z-10 flat no shadows">
+<button class="font-button-label text-button-label text-primary hover:opacity-80 transition-opacity cursor-pointer active:scale-95 uppercase tracking-[2px]">Skip</button>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col w-full max-w-[1200px] mx-auto relative z-10 px-container-padding pb-8">
+<!-- Animation Container -->
+<div class="flex-1 flex items-center justify-center w-full mt-4 mb-8">
+<!-- STITCH_SVG_START:ANIMATION_16 class="w-full max-w-[340px] aspect-square object-contain" --><div class="w-full max-w-[340px] aspect-square object-contain" id="animated-svg-ANIMATION_16" style="display:block;"><svg viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<circle cx="100" cy="100" fill="none" r="60" stroke="#E2231A" stroke-width="3">
+<animate attributename="r" dur="2s" repeatcount="indefinite" values="60;65;60"></animate>
+<animate attributename="opacity" dur="2s" repeatcount="indefinite" values="1;0.5;1"></animate>
+</circle>
+<circle cx="100" cy="100" fill="none" opacity="0.5" r="60" stroke="#E2231A" stroke-width="3">
+<animate attributename="r" dur="2s" repeatcount="indefinite" values="60;80"></animate>
+<animate attributename="opacity" dur="2s" repeatcount="indefinite" values="0.5;0"></animate>
+</circle>
+<path d="M100 70 V100" stroke="#E2231A" stroke-linecap="round" stroke-width="8"></path>
+<path d="M80 80 A30 30 0 1 0 120 80" fill="none" stroke="#E2231A" stroke-linecap="round" stroke-width="8"></path>
+</svg></div><!-- STITCH_SVG_END:ANIMATION_16 -->
+</div>
+<!-- Typography & Action Container -->
+<div class="flex flex-col items-center w-full gap-stack-gap">
+<div class="flex flex-col items-center gap-unit text-center">
+<h1 class="font-headline-lg text-headline-lg text-on-background">One Tap to Connect</h1>
+<p class="font-body-sm text-body-sm text-secondary opacity-60 max-w-[300px]">Pick a server, tap connect, and browse securely. It's that simple.</p>
+</div>
+<!-- Page Indicators -->
+<div class="flex items-center justify-center gap-2 my-6">
+<div class="w-2 h-2 rounded-full bg-secondary opacity-20 transition-all duration-300 ease-in-out"></div>
+<div class="w-2 h-2 rounded-full bg-secondary opacity-20 transition-all duration-300 ease-in-out"></div>
+<div class="w-2 h-2 rounded-full bg-secondary opacity-20 transition-all duration-300 ease-in-out"></div>
+<div class="w-8 h-2 rounded-full bg-primary-container transition-all duration-300 ease-in-out shadow-[0_0_20px_rgba(226,35,26,0.5)]"></div>
+</div>
+<!-- Primary Action Button -->
+<button class="w-full max-w-[400px] bg-primary-container text-on-primary-container font-button-label text-button-label rounded-full py-4 uppercase tracking-[2px] hover:opacity-80 transition-opacity active:scale-95 shadow-[0_4px_30px_rgba(226,35,26,0.3)]">
+                Get Started
+            </button>
+</div>
+</main>
+</body></html>

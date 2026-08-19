@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3F688A11302A85D30015A574 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 3F3DDF932F6CA479006AF34E /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		3F3DDF852F6CA477006AF34E /* Tech VPN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tech VPN.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F688A11302A85D30015A574 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = "Tech VPN";
 			packageProductDependencies = (
+				3F3DDF932F6CA479006AF34E /* Supabase */,
 			);
 			productName = "Tech VPN";
 			productReference = 3F3DDF852F6CA477006AF34E /* Tech VPN.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = 3F3DDF7C2F6CA477006AF34E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3F3DDF942F6CA479006AF34E /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3F3DDF862F6CA477006AF34E /* Products */;
 			projectDirPath = "";
@@ -255,7 +264,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Tech VPN/Tech_VPN.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = H2SB2ZLD67;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -289,7 +298,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Tech VPN/Tech_VPN.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = H2SB2ZLD67;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -338,6 +347,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3F3DDF942F6CA479006AF34E /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3F3DDF932F6CA479006AF34E /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3F3DDF942F6CA479006AF34E /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3F3DDF7D2F6CA477006AF34E /* Project object */;
 }

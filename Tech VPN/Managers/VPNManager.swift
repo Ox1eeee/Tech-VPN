@@ -15,10 +15,11 @@ class VPNManager: ObservableObject {
     @Published var isConnected: Bool = false
     @Published var selectedServer: VPNServer?
     @Published var connectedDate: Date?
-    private var connectionId: Int?
+    private var connectionStartDate: Date?
     
     private let vpnManager = NEVPNManager.shared()
     private let keychain = KeychainHelper.shared
+    private let debugLog = VPNDebugLogger.shared
     
     init() {
         loadVPNConfiguration()
@@ -27,15 +28,21 @@ class VPNManager: ObservableObject {
     
     // MARK: - Configure IKEv2 VPN
     func configureVPN(server: VPNServer, config: VPNServerConfig, username: String, password: String) {
+        debugLog.log("Configuring VPN for server: \(config.serverAddress)")
+        debugLog.log("Remote Identifier: \(config.remoteIdentifier)")
+        debugLog.log("Username: \(username)")
+        
         // Save VPN server credentials to Keychain with VPN-accessible protection
-        keychain.saveForVPN(string: password, forKey: KeychainHelper.vpnServerPasswordKey)
-        keychain.saveForVPN(string: username, forKey: KeychainHelper.vpnServerUsernameKey)
+        let passSaved = keychain.saveForVPN(string: password, forKey: KeychainHelper.vpnServerPasswordKey)
+        let userSaved = keychain.saveForVPN(string: username, forKey: KeychainHelper.vpnServerUsernameKey)
+        debugLog.log("Keychain save - password: \(passSaved), username: \(userSaved)")
         
         // Get persistent reference AFTER saving
         guard let passwordRef = keychain.persistentReference(forKey: KeychainHelper.vpnServerPasswordKey) else {
-            print("Failed to get VPN password persistent reference from Keychain")
+            debugLog.error("Failed to get VPN password persistent reference from Keychain")
             return
         }
+        debugLog.log("Password ref obtained: \(passwordRef.count) bytes")
         
         let ikev2 = NEVPNProtocolIKEv2()
         
@@ -49,6 +56,18 @@ class VPNManager: ObservableObject {
         ikev2.passwordReference = passwordRef
         ikev2.authenticationMethod = .none
         ikev2.useExtendedAuthentication = true
+        
+        // Certificate validation - trust system CAs (includes Let's Encrypt)
+        // Server cert is RSA (--key-type rsa in certbot)
+        ikev2.certificateType = .RSA
+        
+        // IKE security - match server ciphers
+        ikev2.ikeSecurityAssociationParameters.encryptionAlgorithm = .algorithmAES256
+        ikev2.ikeSecurityAssociationParameters.integrityAlgorithm = .SHA256
+        ikev2.ikeSecurityAssociationParameters.diffieHellmanGroup = .group14
+        ikev2.childSecurityAssociationParameters.encryptionAlgorithm = .algorithmAES256
+        ikev2.childSecurityAssociationParameters.integrityAlgorithm = .SHA256
+        ikev2.childSecurityAssociationParameters.diffieHellmanGroup = .group14
         
         // MOBIKE enabled (auto-reconnect on WiFi ↔ Cellular)
         ikev2.disableMOBIKE = false
@@ -65,16 +84,19 @@ class VPNManager: ObservableObject {
         vpnManager.isEnabled = true
         vpnManager.isOnDemandEnabled = false
         
+        debugLog.log("Saving VPN preferences...")
         vpnManager.saveToPreferences { [weak self] error in
             if let error = error {
-                print("Failed to save VPN configuration: \(error.localizedDescription)")
+                self?.debugLog.error("Failed to save VPN config: \(error.localizedDescription)")
                 return
             }
-            print("VPN configuration saved successfully for server: \(config.serverAddress)")
+            self?.debugLog.log("VPN config saved OK for: \(config.serverAddress)")
             // Must reload after first save
             self?.vpnManager.loadFromPreferences { error in
                 if let error = error {
-                    print("Failed to reload after save: \(error.localizedDescription)")
+                    self?.debugLog.error("Failed to reload after save: \(error.localizedDescription)")
+                } else {
+                    self?.debugLog.log("VPN config reloaded successfully")
                 }
             }
         }
@@ -94,20 +116,24 @@ class VPNManager: ObservableObject {
     
     // MARK: - Connect
     func connect() {
+        debugLog.log("Connect requested...")
         loadVPNConfiguration()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            self.debugLog.log("Starting VPN tunnel...")
             do {
-                try self?.vpnManager.connection.startVPNTunnel()
+                try self.vpnManager.connection.startVPNTunnel()
                 DispatchQueue.main.async {
-                    self?.status = .connecting
+                    self.status = .connecting
                 }
+                self.debugLog.log("startVPNTunnel() called successfully")
                 // Log connection to backend
-                self?.logConnection()
+                self.logConnection()
             } catch {
-                print("Failed to start VPN tunnel: \(error.localizedDescription)")
+                self.debugLog.error("startVPNTunnel() failed: \(error.localizedDescription)")
                 DispatchQueue.main.async {
-                    self?.status = .disconnected
+                    self.status = .disconnected
                 }
             }
         }
@@ -143,7 +169,21 @@ class VPNManager: ObservableObject {
     }
     
     @objc private func vpnStatusDidChange() {
+        let rawStatus = vpnManager.connection.status
+        debugLog.log("VPN status changed: \(statusDescription(rawStatus))")
         updateConnectionStatus()
+    }
+    
+    private func statusDescription(_ status: NEVPNStatus) -> String {
+        switch status {
+        case .invalid: return "INVALID (no VPN config)"
+        case .disconnected: return "DISCONNECTED"
+        case .connecting: return "CONNECTING"
+        case .connected: return "CONNECTED"
+        case .reasserting: return "REASSERTING"
+        case .disconnecting: return "DISCONNECTING"
+        @unknown default: return "UNKNOWN"
+        }
     }
     
     private func updateConnectionStatus() {
@@ -183,12 +223,10 @@ class VPNManager: ObservableObject {
     // MARK: - Connection Logging
     private func logConnection() {
         guard let serverId = selectedServer?.id else { return }
+        connectionStartDate = Date()
         Task {
             do {
-                let response: ConnectionLogResponse = try await APIService.shared.logConnection(serverId: serverId)
-                await MainActor.run {
-                    self.connectionId = response.connectionId
-                }
+                try await APIService.shared.logConnection(serverId: serverId)
             } catch {
                 print("Failed to log connection: \(error.localizedDescription)")
             }
@@ -196,13 +234,11 @@ class VPNManager: ObservableObject {
     }
     
     private func logDisconnection() {
-        guard let connId = connectionId else { return }
+        guard let serverId = selectedServer?.id else { return }
+        let duration = Int(Date().timeIntervalSince(connectionStartDate ?? Date()))
         Task {
             do {
-                try await APIService.shared.logDisconnection(connectionId: connId)
-                await MainActor.run {
-                    self.connectionId = nil
-                }
+                try await APIService.shared.logDisconnection(serverId: serverId, durationSeconds: duration)
             } catch {
                 print("Failed to log disconnection: \(error.localizedDescription)")
             }

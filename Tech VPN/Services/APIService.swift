@@ -6,109 +6,78 @@
 //
 
 import Foundation
+import Supabase
 
 class APIService {
     static let shared = APIService()
+    private let supabase = SupabaseManager.shared.client
+    
     private init() {}
     
-    // MARK: - Base URL (change this to your backend server)
-    private var baseURL = "http://148.113.44.176:3000"
-    
-    private var authToken: String? {
-        return KeychainHelper.shared.readString(forKey: KeychainHelper.tokenKey)
-    }
-    
-    // MARK: - Generic Request
-    private func request<T: Decodable>(
-        endpoint: String,
-        method: String = "GET",
-        body: [String: Any]? = nil,
-        requiresAuth: Bool = false
-    ) async throws -> T {
-        guard let url = URL(string: "\(baseURL)\(endpoint)") else {
-            throw APIError.invalidURL
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        if requiresAuth, let token = authToken {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        
-        if let body = body {
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        }
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                throw APIError.serverError(errorResponse.error)
-            }
-            throw APIError.httpError(httpResponse.statusCode)
-        }
-        
-        let decoder = JSONDecoder()
-        return try decoder.decode(T.self, from: data)
-    }
+    // MARK: - Server List
+    // Each server uses a subdomain of techvpnpro.com with Let's Encrypt cert
+    // remoteIdentifier must match the domain (leftid in ipsec.conf)
+    private let vpnServers: [VPNServer] = [
+        VPNServer(id: 1, name: "France #1", country: "FR", ipAddress: "fr1.techvpnpro.com", load: 10)
+    ]
     
     // MARK: - Fetch Server List
     func fetchServers() async throws -> [VPNServer] {
-        return try await request(endpoint: "/api/servers")
+        return vpnServers
     }
     
     // MARK: - Fetch Server Config
     func fetchServerConfig(serverId: Int) async throws -> VPNServerConfig {
-        return try await request(
-            endpoint: "/api/vpn/config/\(serverId)",
-            requiresAuth: true
+        guard let server = vpnServers.first(where: { $0.id == serverId }) else {
+            throw APIError.serverError("Server not found")
+        }
+        
+        return VPNServerConfig(
+            serverAddress: server.ipAddress,
+            remoteIdentifier: server.ipAddress,
+            certificate: nil,
+            presharedKey: nil
         )
     }
     
     // MARK: - Log Connection
-    func logConnection(serverId: Int) async throws -> ConnectionLogResponse {
-        return try await request(
-            endpoint: "/api/vpn/connect",
-            method: "POST",
-            body: ["serverId": serverId],
-            requiresAuth: true
+    func logConnection(serverId: Int) async throws {
+        let session = try await supabase.auth.session
+        let log = ConnectionLog(
+            userId: session.user.id,
+            serverId: serverId
         )
+        try await supabase
+            .from("connection_logs")
+            .insert(log)
+            .execute()
     }
     
     // MARK: - Log Disconnection
-    func logDisconnection(connectionId: Int) async throws {
-        let _: ConnectionLogResponse = try await request(
-            endpoint: "/api/vpn/disconnect",
-            method: "POST",
-            body: ["connectionId": connectionId],
-            requiresAuth: true
+    func logDisconnection(serverId: Int, durationSeconds: Int) async throws {
+        let session = try await supabase.auth.session
+        let updatePayload = DisconnectUpdate(
+            disconnectedAt: ISO8601DateFormatter().string(from: Date()),
+            durationSeconds: durationSeconds
         )
+        try await supabase
+            .from("connection_logs")
+            .update(updatePayload)
+            .eq("user_id", value: session.user.id.uuidString)
+            .eq("server_id", value: serverId)
+            .is("disconnected_at", value: true)
+            .execute()
     }
+}
+
+// MARK: - Update Payloads
+private struct DisconnectUpdate: Codable {
+    let disconnectedAt: String
+    let durationSeconds: Int
     
-    // MARK: - Fetch Usage Stats
-    func fetchUsageStats() async throws -> UsageStats {
-        return try await request(endpoint: "/api/stats/usage", requiresAuth: true)
-    }
-    
-    // MARK: - Fetch Security Audit
-    func fetchSecurityAudit() async throws -> SecurityAudit {
-        return try await request(endpoint: "/api/stats/security", requiresAuth: true)
-    }
-    
-    // MARK: - Fetch User Profile
-    func fetchProfile() async throws -> UserProfile {
-        return try await request(endpoint: "/api/account/profile", requiresAuth: true)
-    }
-    
-    // MARK: - Update Base URL
-    func updateBaseURL(_ url: String) {
-        // For future use if user wants to configure server URL
+    enum CodingKeys: String, CodingKey {
+        case disconnectedAt = "disconnected_at"
+        case durationSeconds = "duration_seconds"
     }
 }
 

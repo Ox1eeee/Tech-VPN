@@ -26,6 +26,7 @@ enum AppTab: Int, CaseIterable {
 struct MainTabView: View {
     @ObservedObject var vpnManager: VPNManager
     @ObservedObject var authService: AuthService
+    @Binding var isGuestMode: Bool
     @State private var selectedTab: AppTab = .home
     
     var body: some View {
@@ -34,13 +35,17 @@ struct MainTabView: View {
             Group {
                 switch selectedTab {
                 case .home:
-                    HomeView(vpnManager: vpnManager, authService: authService)
+                    HomeView(vpnManager: vpnManager, authService: authService) {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedTab = .settings
+                        }
+                    }
                 case .servers:
                     ServerListView(vpnManager: vpnManager)
                 case .stats:
                     StatsView(vpnManager: vpnManager)
                 case .settings:
-                    SettingsView(authService: authService, vpnManager: vpnManager)
+                    SettingsView(authService: authService, vpnManager: vpnManager, isGuestMode: $isGuestMode)
                 }
             }
             
@@ -84,5 +89,5 @@ struct MainTabView: View {
 }
 
 #Preview {
-    MainTabView(vpnManager: VPNManager(), authService: AuthService.shared)
+    MainTabView(vpnManager: VPNManager(), authService: AuthService.shared, isGuestMode: .constant(false))
 }

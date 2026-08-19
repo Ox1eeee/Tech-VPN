@@ -9,42 +9,45 @@ import SwiftUI
 
 struct LoginView: View {
     @ObservedObject var authService: AuthService
+    var onContinueAsGuest: () -> Void = {}
     
-    @State private var username = ""
     @State private var email = ""
+    @State private var username = ""
     @State private var password = ""
     @State private var confirmPassword = ""
     @State private var isSignUp = false
     @State private var showPassword = false
     
     var body: some View {
-        ZStack {
-            // Background
-            AppTheme.Colors.background
-                .ignoresSafeArea()
-            
-            // Ambient glow
-            Circle()
-                .fill(AppTheme.Colors.primaryContainer.opacity(0.05))
-                .frame(width: 500, height: 500)
-                .blur(radius: 120)
-            
-            VStack(spacing: 0) {
+        GeometryReader { geometry in
+            ZStack {
+                // Background
+                AppTheme.Colors.background
+                    .ignoresSafeArea()
+                
+                // Ambient glow
+                Circle()
+                    .fill(AppTheme.Colors.primaryContainer.opacity(0.05))
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 80)
+                    .offset(y: -geometry.size.height * 0.2)
+                
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: AppTheme.Spacing.lg) {
-                        Spacer().frame(height: 40)
+                    VStack(spacing: AppTheme.Spacing.md) {
+                        Spacer().frame(height: geometry.safeAreaInsets.top > 0 ? 20 : 40)
                         
                         // Logo Section
                         VStack(spacing: AppTheme.Spacing.sm) {
                             Image(systemName: "shield")
-                                .font(.system(size: 48))
+                                .font(.system(size: 40))
                                 .foregroundColor(AppTheme.Colors.primaryContainer)
                             
                             Text("TECH VPN")
-                                .font(.system(size: 24, weight: .bold))
+                                .font(.system(size: 22, weight: .bold))
                                 .tracking(-0.5)
                                 .foregroundColor(AppTheme.Colors.onBackground)
                         }
+                        .padding(.bottom, AppTheme.Spacing.sm)
                         
                         // Tab Toggle
                         HStack(spacing: 0) {
@@ -70,21 +73,21 @@ struct LoginView: View {
                         
                         // Form Fields
                         VStack(spacing: AppTheme.Spacing.sm) {
+                            AuthInputField(
+                                label: "EMAIL ADDRESS",
+                                placeholder: "name@example.com",
+                                text: $email,
+                                isSecure: false
+                            )
+                            
                             if isSignUp {
                                 AuthInputField(
-                                    label: "EMAIL ADDRESS",
-                                    placeholder: "name@example.com",
-                                    text: $email,
+                                    label: "USERNAME",
+                                    placeholder: "username",
+                                    text: $username,
                                     isSecure: false
                                 )
                             }
-                            
-                            AuthInputField(
-                                label: "USERNAME",
-                                placeholder: "username",
-                                text: $username,
-                                isSecure: false
-                            )
                             
                             AuthInputField(
                                 label: "PASSWORD",
@@ -179,16 +182,25 @@ struct LoginView: View {
                         }
                         .padding(.horizontal, AppTheme.Spacing.safeMargin)
                         
+                        // Continue as Guest
+                        Button(action: onContinueAsGuest) {
+                            Text("Continue without an account")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(AppTheme.Colors.secondary.opacity(0.6))
+                        }
+                        .padding(.top, AppTheme.Spacing.xs)
+                        
                         // Footer
                         Text("By continuing, you agree to Tech VPN's Terms of Service and Privacy Policy.")
-                            .font(.system(size: 12))
+                            .font(.system(size: 11))
                             .foregroundColor(AppTheme.Colors.secondary.opacity(0.4))
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, AppTheme.Spacing.xl)
-                            .padding(.top, AppTheme.Spacing.lg)
+                            .padding(.horizontal, AppTheme.Spacing.lg)
+                            .padding(.top, AppTheme.Spacing.sm)
                         
-                        Spacer().frame(height: 40)
+                        Spacer().frame(height: 20)
                     }
+                    .frame(minHeight: geometry.size.height)
                 }
             }
         }
@@ -197,10 +209,10 @@ struct LoginView: View {
     
     private var isFormValid: Bool {
         if isSignUp {
-            return !username.isEmpty && !email.isEmpty && !password.isEmpty
+            return !email.isEmpty && !username.isEmpty && !password.isEmpty
                 && password == confirmPassword && password.count >= 6
         }
-        return !username.isEmpty && !password.isEmpty
+        return !email.isEmpty && !password.isEmpty
     }
     
     private func performAction() {
@@ -208,7 +220,7 @@ struct LoginView: View {
             if isSignUp {
                 await authService.signup(email: email, username: username, password: password)
             } else {
-                await authService.login(username: username, password: password)
+                await authService.login(email: email, password: password)
             }
         }
     }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Supabase
 
 struct StatsView: View {
     @ObservedObject var vpnManager: VPNManager
@@ -59,8 +60,46 @@ struct StatsView: View {
     private func fetchStats() async {
         isLoading = true
         do {
-            usageStats = try await APIService.shared.fetchUsageStats()
-            securityAudit = try await APIService.shared.fetchSecurityAudit()
+            let supabase = SupabaseManager.shared.client
+            let session = try await supabase.auth.session
+            
+            let logs: [ConnectionLog] = try await supabase
+                .from("connection_logs")
+                .select()
+                .eq("user_id", value: session.user.id.uuidString)
+                .order("connected_at", ascending: false)
+                .limit(50)
+                .execute()
+                .value
+            
+            let totalSessions = logs.count
+            let totalDuration = logs.compactMap { $0.durationSeconds }.reduce(0, +)
+            let totalSent = logs.compactMap { $0.bytesSent }.reduce(0, +)
+            let totalReceived = logs.compactMap { $0.bytesReceived }.reduce(0, +)
+            
+            usageStats = UsageStats(
+                totalData: Int(totalSent + totalReceived),
+                totalSessions: totalSessions,
+                totalBytesSent: Int(totalSent),
+                totalBytesReceived: Int(totalReceived),
+                timeProtected: totalDuration,
+                averageSpeed: 0,
+                dailyData: []
+            )
+            
+            securityAudit = SecurityAudit(auditLog: logs.prefix(20).map { log in
+                AuditLogEntry(
+                    id: log.id ?? 0,
+                    serverName: nil,
+                    serverCountry: nil,
+                    connectedAt: log.connectedAt,
+                    disconnectedAt: log.disconnectedAt,
+                    duration: Double(log.durationSeconds ?? 0),
+                    bytesSent: Int(log.bytesSent ?? 0),
+                    bytesReceived: Int(log.bytesReceived ?? 0),
+                    encrypted: true
+                )
+            })
         } catch {
             print("Failed to fetch stats: \(error.localizedDescription)")
         }
@@ -175,7 +214,7 @@ struct StatsView: View {
     
     // MARK: - Data Usage Card
     private var dataUsageCard: some View {
-        let totalData = usageStats?.totalData ?? 1288490186
+        let totalData = usageStats?.totalData ?? 0
         let dataLimit: Double = 5_368_709_120
         let progress = min(CGFloat(totalData) / CGFloat(dataLimit), 1.0)
         let remaining = max(Int(dataLimit) - totalData, 0)
@@ -264,16 +303,6 @@ struct StatsView: View {
             // Simplified chart placeholder
             SpeedChartView()
                 .frame(height: 120)
-            
-            // Time labels
-            HStack {
-                ForEach(["12:00", "14:00", "16:00", "18:00", "20:00"], id: \.self) { time in
-                    Text(time)
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                        .foregroundColor(AppTheme.Colors.secondary.opacity(0.4))
-                    if time != "20:00" { Spacer() }
-                }
-            }
         }
         .padding(AppTheme.Spacing.md)
         .background(Color(hex: "#161616"))
@@ -287,10 +316,10 @@ struct StatsView: View {
     // MARK: - Stats Grid
     private var statsGrid: some View {
         let stats = usageStats
-        let totalData = stats?.totalData ?? 26640629760
-        let sessions = stats?.totalSessions ?? 142
-        let avgSpeed = stats?.averageSpeed ?? 10500000
-        let timeProtected = stats?.timeProtected ?? 1555200
+        let totalData = stats?.totalData ?? 0
+        let sessions = stats?.totalSessions ?? 0
+        let avgSpeed = stats?.averageSpeed ?? 0
+        let timeProtected = stats?.timeProtected ?? 0
         
         return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.gutter) {
             StatGridItem(icon: "externaldrive.fill", label: "TOTAL DATA", value: formatBytes(totalData), unit: formatBytesUnit(totalData))
@@ -326,27 +355,11 @@ struct StatsView: View {
                     }
                 }
             } else {
-                VStack(spacing: AppTheme.Spacing.sm) {
-                    AuditRow(
-                        icon: "globe",
-                        iconBgColor: AppTheme.Colors.primary.opacity(0.1),
-                        iconColor: AppTheme.Colors.primary,
-                        title: "New York, USA",
-                        subtitle: "Connection established",
-                        time: "2m ago",
-                        opacity: 1.0
-                    )
-                    
-                    AuditRow(
-                        icon: "lock.fill",
-                        iconBgColor: AppTheme.Colors.secondary.opacity(0.1),
-                        iconColor: AppTheme.Colors.secondary,
-                        title: "Encrypted Tunnel",
-                        subtitle: "AES-256 Protocol active",
-                        time: "14m ago",
-                        opacity: 0.6
-                    )
-                }
+                Text("No connection history yet")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.secondary.opacity(0.5))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, AppTheme.Spacing.lg)
             }
         }
         .padding(AppTheme.Spacing.md)
@@ -376,25 +389,8 @@ struct SpeedChartView: View {
                 .stroke(Color.white.opacity(0.05), lineWidth: 1)
             }
             
-            // Trend line
+            // Trend line (empty when no data)
             Path { path in
-                let points: [CGFloat] = [0.6, 0.2, 0.5, 0.3, 0.7, 0.25, 0.4]
-                let step = width / CGFloat(points.count - 1)
-                
-                path.move(to: CGPoint(x: 0, y: height * points[0]))
-                for i in 1..<points.count {
-                    let x = step * CGFloat(i)
-                    let y = height * points[i]
-                    let prevX = step * CGFloat(i - 1)
-                    let prevY = height * points[i - 1]
-                    let controlX1 = prevX + step * 0.5
-                    let controlX2 = x - step * 0.5
-                    path.addCurve(
-                        to: CGPoint(x: x, y: y),
-                        control1: CGPoint(x: controlX1, y: prevY),
-                        control2: CGPoint(x: controlX2, y: y)
-                    )
-                }
             }
             .stroke(
                 AppTheme.Colors.primaryContainer,
