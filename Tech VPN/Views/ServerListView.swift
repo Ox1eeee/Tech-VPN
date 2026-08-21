@@ -15,10 +15,6 @@ struct ServerListView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var searchText = ""
-    @State private var showVPNCredentials = false
-    @State private var vpnUsername = ""
-    @State private var vpnPassword = ""
-    @State private var pendingServer: VPNServer?
     
     var filteredServers: [VPNServer] {
         if searchText.isEmpty {
@@ -68,24 +64,6 @@ struct ServerListView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             loadServers()
-        }
-        .alert("VPN Credentials", isPresented: $showVPNCredentials) {
-            TextField("Username", text: $vpnUsername)
-                .autocapitalization(.none)
-                .disableAutocorrection(true)
-            SecureField("Password", text: $vpnPassword)
-            Button("Connect") {
-                guard let server = pendingServer, !vpnUsername.isEmpty, !vpnPassword.isEmpty else { return }
-                // Save VPN credentials for future use
-                KeychainHelper.shared.saveForVPN(string: vpnUsername, forKey: KeychainHelper.vpnServerUsernameKey)
-                KeychainHelper.shared.saveForVPN(string: vpnPassword, forKey: KeychainHelper.vpnServerPasswordKey)
-                configureAndDismiss(server: server, vpnUser: vpnUsername, vpnPass: vpnPassword)
-            }
-            Button("Cancel", role: .cancel) {
-                pendingServer = nil
-            }
-        } message: {
-            Text("Enter your VPN server credentials\n(Username: techvpn)")
         }
     }
     
@@ -251,23 +229,17 @@ struct ServerListView: View {
         }
     }
     
+    // VPN server credentials (embedded - users never see these)
+    private static let vpnUser = "techvpn"
+    private static let vpnPass = "TechVPN@2026!"
+    
     private func selectServer(_ server: VPNServer) {
-        // Check if VPN credentials are already saved
-        let savedVPNUser = KeychainHelper.shared.readString(forKey: KeychainHelper.vpnServerUsernameKey) ?? ""
-        let savedVPNPass = KeychainHelper.shared.readString(forKey: KeychainHelper.vpnServerPasswordKey) ?? ""
-        
-        if savedVPNUser.isEmpty || savedVPNPass.isEmpty {
-            // Ask for VPN credentials
-            pendingServer = server
-            vpnUsername = ""
-            vpnPassword = ""
-            showVPNCredentials = true
-        } else {
-            configureAndDismiss(server: server, vpnUser: savedVPNUser, vpnPass: savedVPNPass)
-        }
+        configureAndDismiss(server: server)
     }
     
-    private func configureAndDismiss(server: VPNServer, vpnUser: String, vpnPass: String) {
+    private func configureAndDismiss(server: VPNServer) {
+        let vpnUser = Self.vpnUser
+        let vpnPass = Self.vpnPass
         vpnManager.selectedServer = server
         
         Task {
