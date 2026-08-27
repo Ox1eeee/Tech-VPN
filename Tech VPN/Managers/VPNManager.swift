@@ -15,7 +15,10 @@ class VPNManager: ObservableObject {
     @Published var isConnected: Bool = false
     @Published var selectedServer: VPNServer?
     @Published var connectedDate: Date?
+    @Published var publicIP: String = ""
     private var connectionStartDate: Date?
+    
+    let networkMonitor = NetworkMonitor.shared
     
     private let vpnManager = NEVPNManager.shared()
     private let keychain = KeychainHelper.shared
@@ -24,6 +27,7 @@ class VPNManager: ObservableObject {
     init() {
         loadVPNConfiguration()
         monitorVPNStatus()
+        fetchPublicIP()
     }
     
     // MARK: - Configure IKEv2 VPN
@@ -196,6 +200,8 @@ class VPNManager: ObservableObject {
                 self.isConnected = true
                 if self.connectedDate == nil {
                     self.connectedDate = Date()
+                    self.networkMonitor.startMonitoring()
+                    self.fetchPublicIP()
                 }
             case .connecting:
                 self.status = .connecting
@@ -204,9 +210,14 @@ class VPNManager: ObservableObject {
                 self.status = .disconnecting
                 self.isConnected = false
             case .disconnected:
+                if self.connectedDate != nil {
+                    // Was connected, now disconnected — stop monitor
+                    self.networkMonitor.stopMonitoring()
+                }
                 self.status = .disconnected
                 self.isConnected = false
                 self.connectedDate = nil
+                self.fetchPublicIP()
             case .invalid:
                 self.status = .invalid
                 self.isConnected = false
@@ -216,6 +227,24 @@ class VPNManager: ObservableObject {
             @unknown default:
                 self.status = .unknown
                 self.isConnected = false
+            }
+        }
+    }
+    
+    // MARK: - Public IP
+    private func fetchPublicIP() {
+        Task {
+            do {
+                let url = URL(string: "https://api.ipify.org")!
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let ip = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                await MainActor.run {
+                    self.publicIP = ip
+                }
+            } catch {
+                await MainActor.run {
+                    self.publicIP = ""
+                }
             }
         }
     }
@@ -236,9 +265,16 @@ class VPNManager: ObservableObject {
     private func logDisconnection() {
         guard let serverId = selectedServer?.id else { return }
         let duration = Int(Date().timeIntervalSince(connectionStartDate ?? Date()))
+        let bytesSent = networkMonitor.sessionBytesUp
+        let bytesReceived = networkMonitor.sessionBytesDown
         Task {
             do {
-                try await APIService.shared.logDisconnection(serverId: serverId, durationSeconds: duration)
+                try await APIService.shared.logDisconnection(
+                    serverId: serverId,
+                    durationSeconds: duration,
+                    bytesSent: bytesSent,
+                    bytesReceived: bytesReceived
+                )
             } catch {
                 print("Failed to log disconnection: \(error.localizedDescription)")
             }

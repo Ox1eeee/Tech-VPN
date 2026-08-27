@@ -54,18 +54,22 @@ class APIService {
     }
     
     // MARK: - Log Disconnection
-    func logDisconnection(serverId: Int, durationSeconds: Int) async throws {
+    func logDisconnection(serverId: Int, durationSeconds: Int, bytesSent: Int64 = 0, bytesReceived: Int64 = 0) async throws {
         let session = try await supabase.auth.session
         let updatePayload = DisconnectUpdate(
             disconnectedAt: ISO8601DateFormatter().string(from: Date()),
-            durationSeconds: durationSeconds
+            durationSeconds: durationSeconds,
+            bytesSent: bytesSent,
+            bytesReceived: bytesReceived
         )
         try await supabase
             .from("connection_logs")
             .update(updatePayload)
             .eq("user_id", value: session.user.id.uuidString)
             .eq("server_id", value: serverId)
-            .is("disconnected_at", value: true)
+            .is("disconnected_at", value: nil)
+            .order("connected_at", ascending: false)
+            .limit(1)
             .execute()
     }
 }
@@ -74,10 +78,14 @@ class APIService {
 private struct DisconnectUpdate: Codable {
     let disconnectedAt: String
     let durationSeconds: Int
+    let bytesSent: Int64
+    let bytesReceived: Int64
     
     enum CodingKeys: String, CodingKey {
         case disconnectedAt = "disconnected_at"
         case durationSeconds = "duration_seconds"
+        case bytesSent = "bytes_sent"
+        case bytesReceived = "bytes_received"
     }
 }
 

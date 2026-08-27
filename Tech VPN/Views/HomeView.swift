@@ -11,6 +11,7 @@ import Combine
 struct HomeView: View {
     @ObservedObject var vpnManager: VPNManager
     @ObservedObject var authService: AuthService
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     var onProfileTap: () -> Void = {}
     
     @State private var showServerList = false
@@ -207,7 +208,7 @@ struct HomeView: View {
                         .font(.system(size: 20, weight: .medium, design: .monospaced))
                         .foregroundColor(AppTheme.Colors.onSurface)
                     
-                    Text("IP: 45.12.98.204")
+                    Text("IP: \(vpnManager.publicIP.isEmpty ? "..." : vpnManager.publicIP)")
                         .font(.system(size: 14, weight: .medium, design: .monospaced))
                         .foregroundColor(AppTheme.Colors.outlineVariant.opacity(0.6))
                 } else if vpnManager.status == .connecting {
@@ -227,7 +228,7 @@ struct HomeView: View {
                         .tracking(3)
                         .foregroundColor(AppTheme.Colors.secondary)
                     
-                    Text("IP: 192.168.1.1")
+                    Text("IP: \(vpnManager.publicIP.isEmpty ? "..." : vpnManager.publicIP)")
                         .font(.system(size: 14, weight: .medium, design: .monospaced))
                         .foregroundColor(AppTheme.Colors.outlineVariant.opacity(0.6))
                 }
@@ -242,7 +243,7 @@ struct HomeView: View {
             MetricCard(
                 icon: "arrow.down",
                 label: "DOWN",
-                value: "0.0",
+                value: String(format: "%.1f", networkMonitor.downloadSpeed),
                 unit: "MBPS"
             )
             
@@ -250,7 +251,7 @@ struct HomeView: View {
             MetricCard(
                 icon: "arrow.up",
                 label: "UP",
-                value: "0.0",
+                value: String(format: "%.1f", networkMonitor.uploadSpeed),
                 unit: "MBPS"
             )
         }

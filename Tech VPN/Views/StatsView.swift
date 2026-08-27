@@ -10,6 +10,7 @@ import Supabase
 
 struct StatsView: View {
     @ObservedObject var vpnManager: VPNManager
+    @ObservedObject private var networkMonitor = NetworkMonitor.shared
     
     @State private var usageStats: UsageStats?
     @State private var securityAudit: SecurityAudit?
@@ -73,9 +74,26 @@ struct StatsView: View {
                 .value
             
             let totalSessions = logs.count
-            let totalDuration = logs.compactMap { $0.durationSeconds }.reduce(0, +)
+            // Calculate duration from duration_seconds or estimate from timestamps
+            let totalDuration = logs.reduce(0) { sum, log in
+                if let dur = log.durationSeconds, dur > 0 {
+                    return sum + dur
+                }
+                // Estimate: if we have connected_at and disconnected_at, compute diff
+                if let connStr = log.connectedAt, let discStr = log.disconnectedAt,
+                   let connDate = self.parseDate(connStr),
+                   let discDate = self.parseDate(discStr) {
+                    return sum + max(Int(discDate.timeIntervalSince(connDate)), 0)
+                }
+                return sum
+            }
             let totalSent = logs.compactMap { $0.bytesSent }.reduce(0, +)
             let totalReceived = logs.compactMap { $0.bytesReceived }.reduce(0, +)
+            
+            // Calculate average speed: total bytes / total seconds (bytes/sec)
+            let avgSpeed: Double = totalDuration > 0
+                ? Double(totalSent + totalReceived) / Double(totalDuration)
+                : 0
             
             usageStats = UsageStats(
                 totalData: Int(totalSent + totalReceived),
@@ -83,15 +101,15 @@ struct StatsView: View {
                 totalBytesSent: Int(totalSent),
                 totalBytesReceived: Int(totalReceived),
                 timeProtected: totalDuration,
-                averageSpeed: 0,
+                averageSpeed: avgSpeed,
                 dailyData: []
             )
             
             securityAudit = SecurityAudit(auditLog: logs.prefix(20).map { log in
                 AuditLogEntry(
                     id: log.id ?? 0,
-                    serverName: nil,
-                    serverCountry: nil,
+                    serverName: serverName(for: log.serverId),
+                    serverCountry: "FR",
                     connectedAt: log.connectedAt,
                     disconnectedAt: log.disconnectedAt,
                     duration: Double(log.durationSeconds ?? 0),
@@ -144,7 +162,7 @@ struct StatsView: View {
     
     private func timeAgo(from dateString: String?) -> String {
         guard let dateString = dateString,
-              let date = ISO8601DateFormatter().date(from: dateString) else {
+              let date = parseDate(dateString) else {
             return "—"
         }
         let interval = Date().timeIntervalSince(date)
@@ -152,6 +170,38 @@ struct StatsView: View {
         if interval < 3600 { return "\(Int(interval / 60))m ago" }
         if interval < 86400 { return "\(Int(interval / 3600))h ago" }
         return "\(Int(interval / 86400))d ago"
+    }
+    
+    /// Parse various date formats Supabase may return
+    private func parseDate(_ string: String) -> Date? {
+        // Try ISO8601 with fractional seconds
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = iso.date(from: string) { return date }
+        
+        // Try without fractional seconds
+        iso.formatOptions = [.withInternetDateTime]
+        if let date = iso.date(from: string) { return date }
+        
+        // Try Supabase default format: "2026-08-25 17:50:57.218+00"
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSSZZZZZ"
+        if let date = df.date(from: string) { return date }
+        df.dateFormat = "yyyy-MM-dd HH:mm:ssZZZZZ"
+        if let date = df.date(from: string) { return date }
+        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ"
+        if let date = df.date(from: string) { return date }
+        
+        return nil
+    }
+    
+    /// Map server_id to a display name
+    private func serverName(for serverId: Int) -> String {
+        switch serverId {
+        case 1: return "France #1"
+        default: return "Server \(serverId)"
+        }
     }
     
     // MARK: - Top Bar
@@ -214,10 +264,10 @@ struct StatsView: View {
     
     // MARK: - Data Usage Card
     private var dataUsageCard: some View {
-        let totalData = usageStats?.totalData ?? 0
-        let dataLimit: Double = 5_368_709_120
-        let progress = min(CGFloat(totalData) / CGFloat(dataLimit), 1.0)
-        let remaining = max(Int(dataLimit) - totalData, 0)
+        // Show live session data if VPN is connected, otherwise show historical total
+        let liveSessionBytes = Int(networkMonitor.sessionBytesDown + networkMonitor.sessionBytesUp)
+        let historicalBytes = usageStats?.totalData ?? 0
+        let displayBytes = vpnManager.isConnected ? liveSessionBytes + historicalBytes : historicalBytes
         
         return VStack(spacing: AppTheme.Spacing.md) {
             ZStack {
@@ -226,17 +276,17 @@ struct StatsView: View {
                     .frame(width: 160, height: 160)
                 
                 Circle()
-                    .trim(from: 0, to: progress)
+                    .trim(from: 0, to: displayBytes > 0 ? 1.0 : 0.0)
                     .stroke(AppTheme.Colors.primaryContainer, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .frame(width: 160, height: 160)
                     .rotationEffect(.degrees(-90))
                 
                 VStack(spacing: 4) {
-                    Text(formatBytes(totalData))
+                    Text(formatBytes(displayBytes))
                         .font(.system(size: 36, weight: .heavy))
                         .foregroundColor(AppTheme.Colors.onBackground)
                     
-                    Text("\(formatBytesUnit(totalData)) USED")
+                    Text("\(formatBytesUnit(displayBytes)) USED")
                         .font(.system(size: 10, weight: .bold))
                         .tracking(1)
                         .foregroundColor(AppTheme.Colors.secondary)
@@ -245,10 +295,10 @@ struct StatsView: View {
             
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Plan Limit")
+                    Text("Download")
                         .font(.system(size: 12))
                         .foregroundColor(AppTheme.Colors.secondary.opacity(0.6))
-                    Text("5.0 GB")
+                    Text("\(formatBytes(Int(networkMonitor.sessionBytesDown) + (usageStats?.totalBytesReceived ?? 0))) \(formatBytesUnit(Int(networkMonitor.sessionBytesDown) + (usageStats?.totalBytesReceived ?? 0)))")
                         .font(.system(size: 14, weight: .medium, design: .monospaced))
                         .foregroundColor(AppTheme.Colors.onSurface)
                 }
@@ -256,10 +306,10 @@ struct StatsView: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("Remaining")
+                    Text("Upload")
                         .font(.system(size: 12))
                         .foregroundColor(AppTheme.Colors.secondary.opacity(0.6))
-                    Text("\(formatBytes(remaining)) \(formatBytesUnit(remaining))")
+                    Text("\(formatBytes(Int(networkMonitor.sessionBytesUp) + (usageStats?.totalBytesSent ?? 0))) \(formatBytesUnit(Int(networkMonitor.sessionBytesUp) + (usageStats?.totalBytesSent ?? 0)))")
                         .font(.system(size: 14, weight: .medium, design: .monospaced))
                         .foregroundColor(AppTheme.Colors.primary)
                 }
@@ -300,8 +350,8 @@ struct StatsView: View {
                     .foregroundColor(AppTheme.Colors.secondary.opacity(0.4))
             }
             
-            // Simplified chart placeholder
-            SpeedChartView()
+            // Live speed chart from NetworkMonitor
+            SpeedChartView(samples: networkMonitor.speedHistory)
                 .frame(height: 120)
         }
         .padding(AppTheme.Spacing.md)
@@ -316,15 +366,25 @@ struct StatsView: View {
     // MARK: - Stats Grid
     private var statsGrid: some View {
         let stats = usageStats
-        let totalData = stats?.totalData ?? 0
+        let historicalData = stats?.totalData ?? 0
+        let liveSessionData = Int(networkMonitor.sessionBytesDown + networkMonitor.sessionBytesUp)
+        let totalData = historicalData + liveSessionData
         let sessions = stats?.totalSessions ?? 0
-        let avgSpeed = stats?.averageSpeed ?? 0
-        let timeProtected = stats?.timeProtected ?? 0
+        
+        // AVG Speed: use live session average if connected, otherwise historical
+        let liveAvg = networkMonitor.sessionAverageSpeed
+        let historicalAvg = stats?.averageSpeed ?? 0
+        let avgSpeedMbps = liveAvg > 0 ? liveAvg : (historicalAvg * 8.0 / 1_000_000.0)
+        
+        // Protected time: historical + current session duration
+        let historicalTime = stats?.timeProtected ?? 0
+        let liveTime = Int(networkMonitor.sessionDuration)
+        let timeProtected = historicalTime + liveTime
         
         return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.gutter) {
             StatGridItem(icon: "externaldrive.fill", label: "TOTAL DATA", value: formatBytes(totalData), unit: formatBytesUnit(totalData))
             StatGridItem(icon: "clock.arrow.circlepath", label: "SESSIONS", value: "\(sessions)", unit: "")
-            StatGridItem(icon: "speedometer", label: "AVG SPEED", value: formatSpeed(avgSpeed), unit: "MBPS")
+            StatGridItem(icon: "speedometer", label: "AVG SPEED", value: String(format: "%.1f", avgSpeedMbps), unit: "MBPS")
             StatGridItem(icon: "checkmark.shield.fill", label: "PROTECTED", value: formatDuration(timeProtected), unit: formatDurationUnit(timeProtected))
         }
     }
@@ -347,7 +407,7 @@ struct StatsView: View {
                             icon: entry.encrypted ? "lock.fill" : "globe",
                             iconBgColor: entry.encrypted ? AppTheme.Colors.secondary.opacity(0.1) : AppTheme.Colors.primary.opacity(0.1),
                             iconColor: entry.encrypted ? AppTheme.Colors.secondary : AppTheme.Colors.primary,
-                            title: entry.serverCountry ?? "Unknown",
+                            title: entry.serverName ?? entry.serverCountry ?? "Server",
                             subtitle: entry.encrypted ? "AES-256 Encrypted" : "Connection established",
                             time: timeAgo(from: entry.connectedAt),
                             opacity: 1.0
@@ -374,6 +434,8 @@ struct StatsView: View {
 
 // MARK: - Speed Chart View
 struct SpeedChartView: View {
+    var samples: [NetworkMonitor.SpeedSample] = []
+    
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
@@ -389,14 +451,50 @@ struct SpeedChartView: View {
                 .stroke(Color.white.opacity(0.05), lineWidth: 1)
             }
             
-            // Trend line (empty when no data)
-            Path { path in
+            if samples.count >= 2 {
+                let maxSpeed = max(samples.map { max($0.download, $0.upload) }.max() ?? 1.0, 0.1)
+                
+                // Download line (primary color)
+                Path { path in
+                    for (index, sample) in samples.enumerated() {
+                        let x = width * CGFloat(index) / CGFloat(samples.count - 1)
+                        let y = height - (height * CGFloat(sample.download / maxSpeed))
+                        if index == 0 {
+                            path.move(to: CGPoint(x: x, y: y))
+                        } else {
+                            path.addLine(to: CGPoint(x: x, y: y))
+                        }
+                    }
+                }
+                .stroke(
+                    AppTheme.Colors.primaryContainer,
+                    style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round)
+                )
+                .shadow(color: AppTheme.Colors.primaryContainer.opacity(0.3), radius: 4, y: 2)
+                
+                // Upload line (secondary/dimmer color)
+                Path { path in
+                    for (index, sample) in samples.enumerated() {
+                        let x = width * CGFloat(index) / CGFloat(samples.count - 1)
+                        let y = height - (height * CGFloat(sample.upload / maxSpeed))
+                        if index == 0 {
+                            path.move(to: CGPoint(x: x, y: y))
+                        } else {
+                            path.addLine(to: CGPoint(x: x, y: y))
+                        }
+                    }
+                }
+                .stroke(
+                    AppTheme.Colors.primary.opacity(0.5),
+                    style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round)
+                )
+            } else {
+                // No data placeholder text
+                Text("Waiting for data...")
+                    .font(.system(size: 12))
+                    .foregroundColor(AppTheme.Colors.secondary.opacity(0.4))
+                    .position(x: width / 2, y: height / 2)
             }
-            .stroke(
-                AppTheme.Colors.primaryContainer,
-                style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
-            )
-            .shadow(color: AppTheme.Colors.primaryContainer.opacity(0.3), radius: 6, y: 4)
         }
     }
 }
