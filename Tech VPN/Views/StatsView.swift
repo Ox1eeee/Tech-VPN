@@ -105,11 +105,13 @@ struct StatsView: View {
                 dailyData: []
             )
             
+            let allServers = APIService.shared.cachedServers
             securityAudit = SecurityAudit(auditLog: logs.prefix(20).map { log in
-                AuditLogEntry(
+                let server = allServers.first(where: { $0.id == log.serverId })
+                return AuditLogEntry(
                     id: log.id ?? 0,
                     serverName: serverName(for: log.serverId),
-                    serverCountry: "FR",
+                    serverCountry: server?.countryCode ?? "—",
                     connectedAt: log.connectedAt,
                     disconnectedAt: log.disconnectedAt,
                     duration: Double(log.durationSeconds ?? 0),
@@ -196,12 +198,9 @@ struct StatsView: View {
         return nil
     }
     
-    /// Map server_id to a display name
+    /// Map server_id to a display name (uses dynamic server list from APIService)
     private func serverName(for serverId: Int) -> String {
-        switch serverId {
-        case 1: return "France #1"
-        default: return "Server \(serverId)"
-        }
+        return APIService.shared.serverName(for: serverId)
     }
     
     // MARK: - Top Bar

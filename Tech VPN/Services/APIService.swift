@@ -12,23 +12,58 @@ class APIService {
     static let shared = APIService()
     private let supabase = SupabaseManager.shared.client
     
+    /// Server list API endpoint (hosted on techvpnpro.com)
+    private let serverListURL = "https://techvpnpro.com/api/servers.json"
+    
+    /// Cached server list (populated from API or fallback)
+    private(set) var cachedServers: [VPNServer] = []
+    
     private init() {}
     
-    // MARK: - Server List
-    // Each server uses a subdomain of techvpnpro.com with Let's Encrypt cert
-    // remoteIdentifier must match the domain (leftid in ipsec.conf)
-    private let vpnServers: [VPNServer] = [
-        VPNServer(id: 1, name: "France #1", country: "FR", ipAddress: "fr1.techvpnpro.com", load: 10)
+    // MARK: - Fallback Server List
+    // Used when API is unreachable (offline, first launch, etc.)
+    private let fallbackServers: [VPNServer] = [
+        VPNServer(id: 1, name: "France #1", country: "France", countryCode: "FR", city: "Paris", ipAddress: "fr1.techvpnpro.com", load: 10)
     ]
     
-    // MARK: - Fetch Server List
+    // MARK: - Fetch Server List (from techvpnpro.com)
     func fetchServers() async throws -> [VPNServer] {
-        return vpnServers
+        do {
+            guard let url = URL(string: serverListURL) else {
+                throw APIError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            request.cachePolicy = .reloadRevalidatingCacheData
+            request.timeoutInterval = 10
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                throw APIError.invalidResponse
+            }
+            
+            let servers = try JSONDecoder().decode([VPNServer].self, from: data)
+            
+            if !servers.isEmpty {
+                cachedServers = servers
+                return servers
+            }
+        } catch {
+            print("Server list fetch failed: \(error.localizedDescription)")
+        }
+        
+        // Fallback to hardcoded list
+        cachedServers = fallbackServers
+        return fallbackServers
     }
     
     // MARK: - Fetch Server Config
     func fetchServerConfig(serverId: Int) async throws -> VPNServerConfig {
-        guard let server = vpnServers.first(where: { $0.id == serverId }) else {
+        // Try cached servers first, then fallback
+        let allServers = cachedServers.isEmpty ? fallbackServers : cachedServers
+        guard let server = allServers.first(where: { $0.id == serverId }) else {
             throw APIError.serverError("Server not found")
         }
         
@@ -38,6 +73,12 @@ class APIService {
             certificate: nil,
             presharedKey: nil
         )
+    }
+    
+    // MARK: - Get server name by ID (for stats display)
+    func serverName(for serverId: Int) -> String {
+        let allServers = cachedServers.isEmpty ? fallbackServers : cachedServers
+        return allServers.first(where: { $0.id == serverId })?.name ?? "Server \(serverId)"
     }
     
     // MARK: - Log Connection

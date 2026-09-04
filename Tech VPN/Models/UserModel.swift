@@ -25,25 +25,6 @@ struct Profile: Codable {
     }
 }
 
-struct VPNServerDB: Codable, Identifiable {
-    let id: Int
-    let name: String
-    let country: String
-    let countryCode: String
-    let city: String?
-    let ipAddress: String
-    let load: Int
-    let isActive: Bool
-    let isPremium: Bool
-    
-    enum CodingKeys: String, CodingKey {
-        case id, name, country, city, load
-        case countryCode = "country_code"
-        case ipAddress = "ip_address"
-        case isActive = "is_active"
-        case isPremium = "is_premium"
-    }
-}
 
 struct ConnectionLog: Codable {
     var id: Int?

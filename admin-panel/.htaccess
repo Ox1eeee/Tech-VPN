@@ -1,0 +1,26 @@
+# Tech VPN Admin Panel - Security Rules
+
+# Deny access to data directory (server config files)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^data/ - [F,L]
+</IfModule>
+
+# Serve servers.json directly with proper headers
+<IfModule mod_headers.c>
+    <FilesMatch "servers\.json$">
+        Header set Content-Type "application/json"
+        Header set Access-Control-Allow-Origin "*"
+        Header set Cache-Control "public, max-age=60"
+    </FilesMatch>
+</IfModule>
+
+# Block access to sensitive files
+<FilesMatch "\.(json|log)$">
+    # Allow only api/servers.json
+</FilesMatch>
+
+# Protect data directory
+<Directory "data">
+    Deny from all
+</Directory>
