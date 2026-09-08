@@ -10,12 +10,18 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var authService = AuthService.shared
     @StateObject private var vpnManager = VPNManager()
+    @State private var hasAcceptedPrivacy = UserDefaults.standard.bool(forKey: "hasAcceptedPrivacy")
     @State private var hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
     @State private var isGuestMode = false
     
     var body: some View {
         Group {
-            if !hasSeenOnboarding {
+            if !hasAcceptedPrivacy {
+                PrivacyConsentView {
+                    UserDefaults.standard.set(true, forKey: "hasAcceptedPrivacy")
+                    hasAcceptedPrivacy = true
+                }
+            } else if !hasSeenOnboarding {
                 OnboardingView {
                     hasSeenOnboarding = true
                     if !authService.isAuthenticated {
@@ -35,6 +41,7 @@ struct ContentView: View {
                     }
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: hasAcceptedPrivacy)
         .animation(.easeInOut(duration: 0.3), value: authService.isAuthenticated)
         .animation(.easeInOut(duration: 0.3), value: hasSeenOnboarding)
     }
