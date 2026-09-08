@@ -188,18 +188,26 @@ class VPNManager: ObservableObject {
                     return
                 }
                 
+                // Free users can only auto-connect to free servers
+                let isProUser = await SubscriptionManager.shared.isProUser
+                let eligibleServers = isProUser ? servers : servers.filter { !$0.isPremium }
+                guard !eligibleServers.isEmpty else {
+                    debugLog.log("Auto-connect: no eligible servers for current subscription")
+                    return
+                }
+                
                 let targetServer: VPNServer?
                 
                 if useFastestServer {
                     debugLog.log("Auto-connect: finding fastest server...")
-                    targetServer = await APIService.shared.findFastestServer(from: servers)
+                    targetServer = await APIService.shared.findFastestServer(from: eligibleServers)
                 } else if let lastId = loadPersistedServerId(),
-                          let server = servers.first(where: { $0.id == lastId }) {
+                          let server = eligibleServers.first(where: { $0.id == lastId }) {
                     debugLog.log("Auto-connect: using last selected server: \(server.name)")
                     targetServer = server
                 } else {
                     debugLog.log("Auto-connect: no persisted server, using first available")
-                    targetServer = servers.first
+                    targetServer = eligibleServers.first
                 }
                 
                 guard let server = targetServer else { return }

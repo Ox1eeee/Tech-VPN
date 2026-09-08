@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ServerListView: View {
     @ObservedObject var vpnManager: VPNManager
+    @ObservedObject var subscriptionManager = SubscriptionManager.shared
     @Environment(\.dismiss) private var dismiss
     
     @State private var servers: [VPNServer] = []
@@ -16,6 +17,7 @@ struct ServerListView: View {
     @State private var isMeasuringLatency = false
     @State private var errorMessage: String?
     @State private var searchText = ""
+    @State private var showSubscription = false
     
     var filteredServers: [VPNServer] {
         if searchText.isEmpty {
@@ -65,6 +67,9 @@ struct ServerListView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             loadServers()
+        }
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
         }
     }
     
@@ -216,9 +221,14 @@ struct ServerListView: View {
                 ForEach(filteredServers) { server in
                     ServerRowView(
                         server: server,
-                        isSelected: vpnManager.selectedServer?.id == server.id
+                        isSelected: vpnManager.selectedServer?.id == server.id,
+                        isLocked: server.isPremium && !subscriptionManager.isProUser
                     ) {
-                        selectServer(server)
+                        if server.isPremium && !subscriptionManager.isProUser {
+                            showSubscription = true
+                        } else {
+                            selectServer(server)
+                        }
                     }
                 }
             }
@@ -258,7 +268,11 @@ struct ServerListView: View {
     private func selectFastestServer() {
         isMeasuringLatency = true
         Task {
-            let fastest = await APIService.shared.findFastestServer(from: servers)
+            // Free users can only use free servers for fastest selection
+            let eligibleServers = subscriptionManager.isProUser
+                ? servers
+                : servers.filter { !$0.isPremium }
+            let fastest = await APIService.shared.findFastestServer(from: eligibleServers)
             await MainActor.run {
                 isMeasuringLatency = false
                 if let server = fastest {
@@ -315,6 +329,7 @@ struct ServerListView: View {
 struct ServerRowView: View {
     let server: VPNServer
     let isSelected: Bool
+    var isLocked: Bool = false
     let onTap: () -> Void
     
     private var loadColor: Color {
@@ -327,22 +342,46 @@ struct ServerRowView: View {
         Button(action: onTap) {
             HStack(spacing: AppTheme.Spacing.md) {
                 // Flag
-                Circle()
-                    .fill(AppTheme.Colors.surfaceContainerHighest)
-                    .frame(width: 32, height: 32)
-                    .overlay(
-                        Text(server.flagEmoji)
-                            .font(.system(size: 16))
-                    )
-                    .overlay(
-                        Circle()
-                            .stroke(AppTheme.Colors.outlineVariant.opacity(0.2), lineWidth: 1)
-                    )
+                ZStack(alignment: .bottomTrailing) {
+                    Circle()
+                        .fill(AppTheme.Colors.surfaceContainerHighest)
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Text(server.flagEmoji)
+                                .font(.system(size: 16))
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(AppTheme.Colors.outlineVariant.opacity(0.2), lineWidth: 1)
+                        )
+                    
+                    if server.isPremium {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 8))
+                            .foregroundColor(Color(hex: "#f1c40f"))
+                            .padding(2)
+                            .background(AppTheme.Colors.surfaceContainerLowest)
+                            .clipShape(Circle())
+                            .offset(x: 2, y: 2)
+                    }
+                }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(server.name)
-                        .font(.system(size: 16, weight: isSelected ? .bold : .regular))
-                        .foregroundColor(AppTheme.Colors.onSurface)
+                    HStack(spacing: 6) {
+                        Text(server.name)
+                            .font(.system(size: 16, weight: isSelected ? .bold : .regular))
+                            .foregroundColor(isLocked ? AppTheme.Colors.secondary : AppTheme.Colors.onSurface)
+                        
+                        if server.isPremium {
+                            Text("PRO")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(Color(hex: "#f1c40f"))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .background(Color(hex: "#f1c40f").opacity(0.15))
+                                .clipShape(Capsule())
+                        }
+                    }
                     
                     Text(serverCity)
                         .font(.system(size: 12))
@@ -354,10 +393,14 @@ struct ServerRowView: View {
                 // Load
                 Text("\(server.load)%")
                     .font(.system(size: 14, weight: .medium, design: .monospaced))
-                    .foregroundColor(loadColor)
+                    .foregroundColor(isLocked ? AppTheme.Colors.secondary.opacity(0.4) : loadColor)
                 
-                // Selection indicator
-                if isSelected {
+                // Selection indicator or lock
+                if isLocked {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(AppTheme.Colors.secondary.opacity(0.5))
+                } else if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 20))
                         .foregroundColor(AppTheme.Colors.primaryContainer)

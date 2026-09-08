@@ -69,10 +69,37 @@ struct SettingsView: View {
                                 set: { vpnManager.autoConnectEnabled = $0 }
                             ))
                             settingsDivider
-                            SettingsToggleRow(title: "Kill Switch", isOn: Binding(
-                                get: { vpnManager.killSwitchEnabled },
-                                set: { vpnManager.updateKillSwitch(enabled: $0) }
-                            ))
+                            if subscriptionManager.isProUser {
+                                SettingsToggleRow(title: "Kill Switch", isOn: Binding(
+                                    get: { vpnManager.killSwitchEnabled },
+                                    set: { vpnManager.updateKillSwitch(enabled: $0) }
+                                ))
+                            } else {
+                                Button(action: { showSubscription = true }) {
+                                    HStack {
+                                        Text("Kill Switch")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Color(hex: "#E4E2E1"))
+                                        
+                                        Spacer()
+                                        
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "lock.fill")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(Color(hex: "#f1c40f"))
+                                            Text("PRO")
+                                                .font(.system(size: 11, weight: .bold))
+                                                .foregroundColor(Color(hex: "#f1c40f"))
+                                        }
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color(hex: "#f1c40f").opacity(0.12))
+                                        .clipShape(Capsule())
+                                    }
+                                    .frame(height: 56)
+                                    .padding(.horizontal, 16)
+                                }
+                            }
                         }
                     }
 
