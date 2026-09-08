@@ -16,6 +16,17 @@ class VPNManager: ObservableObject {
     @Published var selectedServer: VPNServer?
     @Published var connectedDate: Date?
     @Published var publicIP: String = ""
+    @Published var killSwitchEnabled: Bool {
+        didSet { UserDefaults.standard.set(killSwitchEnabled, forKey: "killSwitchEnabled") }
+    }
+    @Published var useFastestServer: Bool {
+        didSet { UserDefaults.standard.set(useFastestServer, forKey: "useFastestServer") }
+    }
+    @Published var autoConnectEnabled: Bool {
+        didSet { UserDefaults.standard.set(autoConnectEnabled, forKey: "autoConnectEnabled") }
+    }
+    /// Prevents auto-connect from firing after user manually disconnects within the same session
+    private var userDidManuallyDisconnect = false
     private var connectionStartDate: Date?
     
     let networkMonitor = NetworkMonitor.shared
@@ -25,6 +36,10 @@ class VPNManager: ObservableObject {
     private let debugLog = VPNDebugLogger.shared
     
     init() {
+        // Load persisted preferences (defaults: kill switch on, fastest server off)
+        self.killSwitchEnabled = UserDefaults.standard.object(forKey: "killSwitchEnabled") as? Bool ?? false
+        self.useFastestServer = UserDefaults.standard.object(forKey: "useFastestServer") as? Bool ?? false
+        self.autoConnectEnabled = UserDefaults.standard.object(forKey: "autoConnectEnabled") as? Bool ?? false
         loadVPNConfiguration()
         monitorVPNStatus()
         fetchPublicIP()
@@ -86,7 +101,9 @@ class VPNManager: ObservableObject {
         vpnManager.protocolConfiguration = ikev2
         vpnManager.localizedDescription = "Tech VPN"
         vpnManager.isEnabled = true
-        vpnManager.isOnDemandEnabled = false
+        
+        // Kill Switch: use On-Demand rules to auto-reconnect if VPN drops
+        applyOnDemandRules()
         
         debugLog.log("Saving VPN preferences...")
         vpnManager.saveToPreferences { [weak self] error in
@@ -106,6 +123,118 @@ class VPNManager: ObservableObject {
         }
     }
     
+    // MARK: - Kill Switch (On-Demand Rules)
+    private func applyOnDemandRules() {
+        if killSwitchEnabled {
+            let connectRule = NEOnDemandRuleConnect()
+            connectRule.interfaceTypeMatch = .any
+            vpnManager.onDemandRules = [connectRule]
+            vpnManager.isOnDemandEnabled = true
+            debugLog.log("Kill Switch ON — on-demand rules applied")
+        } else {
+            vpnManager.onDemandRules = []
+            vpnManager.isOnDemandEnabled = false
+            debugLog.log("Kill Switch OFF — on-demand rules cleared")
+        }
+    }
+    
+    func updateKillSwitch(enabled: Bool) {
+        killSwitchEnabled = enabled
+        vpnManager.loadFromPreferences { [weak self] error in
+            guard let self = self else { return }
+            if let error = error {
+                self.debugLog.error("Failed to load prefs for kill switch update: \(error.localizedDescription)")
+                return
+            }
+            self.applyOnDemandRules()
+            self.vpnManager.saveToPreferences { error in
+                if let error = error {
+                    self.debugLog.error("Failed to save kill switch update: \(error.localizedDescription)")
+                } else {
+                    self.debugLog.log("Kill switch preference saved: \(enabled)")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Server Persistence (for auto-connect)
+    func persistSelectedServer() {
+        guard let server = selectedServer else { return }
+        UserDefaults.standard.set(server.id, forKey: "lastSelectedServerId")
+        debugLog.log("Persisted selected server: \(server.name) (id: \(server.id))")
+    }
+    
+    private func loadPersistedServerId() -> Int? {
+        let val = UserDefaults.standard.object(forKey: "lastSelectedServerId") as? Int
+        return val
+    }
+    
+    // MARK: - Auto-Connect
+    func autoConnectIfNeeded() {
+        guard autoConnectEnabled else { return }
+        guard !isConnected && status != .connecting else { return }
+        guard !userDidManuallyDisconnect else {
+            debugLog.log("Auto-connect skipped: user manually disconnected this session")
+            return
+        }
+        
+        debugLog.log("Auto-connect triggered")
+        
+        Task {
+            do {
+                let servers = try await APIService.shared.fetchServers()
+                guard !servers.isEmpty else {
+                    debugLog.log("Auto-connect: no servers available")
+                    return
+                }
+                
+                let targetServer: VPNServer?
+                
+                if useFastestServer {
+                    debugLog.log("Auto-connect: finding fastest server...")
+                    targetServer = await APIService.shared.findFastestServer(from: servers)
+                } else if let lastId = loadPersistedServerId(),
+                          let server = servers.first(where: { $0.id == lastId }) {
+                    debugLog.log("Auto-connect: using last selected server: \(server.name)")
+                    targetServer = server
+                } else {
+                    debugLog.log("Auto-connect: no persisted server, using first available")
+                    targetServer = servers.first
+                }
+                
+                guard let server = targetServer else { return }
+                
+                await MainActor.run {
+                    selectedServer = server
+                    persistSelectedServer()
+                }
+                
+                let config = VPNServerConfig(
+                    serverAddress: server.ipAddress,
+                    remoteIdentifier: server.ipAddress,
+                    certificate: nil,
+                    presharedKey: nil
+                )
+                
+                await MainActor.run {
+                    // Use the embedded credentials
+                    configureVPN(
+                        server: server,
+                        config: config,
+                        username: "techvpn",
+                        password: "TechVPN@2026!"
+                    )
+                    // Slight delay for config to save, then connect
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                        self?.connect()
+                    }
+                }
+            } catch {
+                debugLog.error("Auto-connect failed: \(error.localizedDescription)")
+            }
+        }
+    }
+    
     // MARK: - Load VPN Configuration
     func loadVPNConfiguration() {
         vpnManager.loadFromPreferences { [weak self] error in
@@ -120,11 +249,20 @@ class VPNManager: ObservableObject {
     
     // MARK: - Connect
     func connect() {
+        userDidManuallyDisconnect = false
         debugLog.log("Connect requested...")
         loadVPNConfiguration()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self = self else { return }
+            
+            // Re-enable on-demand (kill switch) before connecting
+            if self.killSwitchEnabled {
+                self.vpnManager.isOnDemandEnabled = true
+                self.applyOnDemandRules()
+                self.vpnManager.saveToPreferences { _ in }
+            }
+            
             self.debugLog.log("Starting VPN tunnel...")
             do {
                 try self.vpnManager.connection.startVPNTunnel()
@@ -145,7 +283,16 @@ class VPNManager: ObservableObject {
     
     // MARK: - Disconnect
     func disconnect() {
-        vpnManager.connection.stopVPNTunnel()
+        userDidManuallyDisconnect = true
+        // Temporarily disable on-demand so iOS doesn't auto-reconnect after manual disconnect
+        if killSwitchEnabled {
+            vpnManager.isOnDemandEnabled = false
+            vpnManager.saveToPreferences { [weak self] _ in
+                self?.vpnManager.connection.stopVPNTunnel()
+            }
+        } else {
+            vpnManager.connection.stopVPNTunnel()
+        }
         DispatchQueue.main.async {
             self.connectedDate = nil
         }

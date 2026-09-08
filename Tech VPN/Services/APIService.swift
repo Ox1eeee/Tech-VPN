@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Network
 import Supabase
 
 class APIService {
@@ -20,50 +21,31 @@ class APIService {
     
     private init() {}
     
-    // MARK: - Fallback Server List
-    // Used when API is unreachable (offline, first launch, etc.)
-    private let fallbackServers: [VPNServer] = [
-        VPNServer(id: 1, name: "France #1", country: "France", countryCode: "FR", city: "Paris", ipAddress: "fr1.techvpnpro.com", load: 10)
-    ]
-    
     // MARK: - Fetch Server List (from techvpnpro.com)
     func fetchServers() async throws -> [VPNServer] {
-        do {
-            guard let url = URL(string: serverListURL) else {
-                throw APIError.invalidURL
-            }
-            
-            var request = URLRequest(url: url)
-            request.cachePolicy = .reloadRevalidatingCacheData
-            request.timeoutInterval = 10
-            
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse,
-                  httpResponse.statusCode == 200 else {
-                throw APIError.invalidResponse
-            }
-            
-            let servers = try JSONDecoder().decode([VPNServer].self, from: data)
-            
-            if !servers.isEmpty {
-                cachedServers = servers
-                return servers
-            }
-        } catch {
-            print("Server list fetch failed: \(error.localizedDescription)")
+        guard let url = URL(string: serverListURL) else {
+            throw APIError.invalidURL
         }
         
-        // Fallback to hardcoded list
-        cachedServers = fallbackServers
-        return fallbackServers
+        var request = URLRequest(url: url)
+        request.cachePolicy = .reloadRevalidatingCacheData
+        request.timeoutInterval = 10
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError.invalidResponse
+        }
+        
+        let servers = try JSONDecoder().decode([VPNServer].self, from: data)
+        cachedServers = servers
+        return servers
     }
     
     // MARK: - Fetch Server Config
     func fetchServerConfig(serverId: Int) async throws -> VPNServerConfig {
-        // Try cached servers first, then fallback
-        let allServers = cachedServers.isEmpty ? fallbackServers : cachedServers
-        guard let server = allServers.first(where: { $0.id == serverId }) else {
+        guard let server = cachedServers.first(where: { $0.id == serverId }) else {
             throw APIError.serverError("Server not found")
         }
         
@@ -77,8 +59,70 @@ class APIService {
     
     // MARK: - Get server name by ID (for stats display)
     func serverName(for serverId: Int) -> String {
-        let allServers = cachedServers.isEmpty ? fallbackServers : cachedServers
-        return allServers.first(where: { $0.id == serverId })?.name ?? "Server \(serverId)"
+        return cachedServers.first(where: { $0.id == serverId })?.name ?? "Server \(serverId)"
+    }
+    
+    // MARK: - Latency Measurement
+    /// Measures TCP handshake latency to a server (port 443). Returns milliseconds, or .infinity on failure.
+    func measureLatency(for server: VPNServer) async -> Double {
+        await withCheckedContinuation { continuation in
+            let host = NWEndpoint.Host(server.ipAddress)
+            let port = NWEndpoint.Port(integerLiteral: 443)
+            let connection = NWConnection(host: host, port: port, using: .tcp)
+            let start = CFAbsoluteTimeGetCurrent()
+            var resumed = false
+            
+            connection.stateUpdateHandler = { state in
+                guard !resumed else { return }
+                switch state {
+                case .ready:
+                    resumed = true
+                    let ms = (CFAbsoluteTimeGetCurrent() - start) * 1000
+                    connection.cancel()
+                    continuation.resume(returning: ms)
+                case .failed, .cancelled:
+                    resumed = true
+                    connection.cancel()
+                    continuation.resume(returning: Double.infinity)
+                default:
+                    break
+                }
+            }
+            
+            connection.start(queue: DispatchQueue(label: "latency.\(server.id)"))
+            
+            // Timeout after 5 seconds
+            DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
+                guard !resumed else { return }
+                resumed = true
+                connection.cancel()
+                continuation.resume(returning: Double.infinity)
+            }
+        }
+    }
+    
+    /// Finds the server with the lowest latency from a list
+    func findFastestServer(from servers: [VPNServer]) async -> VPNServer? {
+        guard !servers.isEmpty else { return nil }
+        
+        var results: [(VPNServer, Double)] = []
+        
+        await withTaskGroup(of: (VPNServer, Double).self) { group in
+            for server in servers {
+                group.addTask {
+                    let latency = await self.measureLatency(for: server)
+                    return (server, latency)
+                }
+            }
+            for await result in group {
+                results.append(result)
+            }
+        }
+        
+        return results
+            .filter { $0.1 < Double.infinity }
+            .min(by: { $0.1 < $1.1 })?
+            .0 ?? servers.first
     }
     
     // MARK: - Log Connection

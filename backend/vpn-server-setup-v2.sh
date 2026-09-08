@@ -64,10 +64,12 @@ ssh -t -o StrictHostKeyChecking=no "$SSH_USER@$SERVER_IP" "\
     chattr -ia /usr/bin/ 2>/dev/null; \
     dpkg --configure -a 2>/dev/null; \
     apt-get -f install -y 2>/dev/null; \
+    rm -f /tmp/vpn-setup-v2.sh 2>/dev/null; \
     echo 'Cleanup done'"
 
-# Create the remote setup script
-REMOTE_SCRIPT=$(mktemp /tmp/vpn-setup-v2-XXXXXX.sh)
+# Create the remote setup script (clean up any leftover temp files first)
+rm -f /tmp/vpn-setup-v2-*.sh 2>/dev/null
+REMOTE_SCRIPT="/tmp/vpn-setup-v2-$$.sh"
 cat > "$REMOTE_SCRIPT" << ENDSCRIPT
 #!/bin/bash
 set -e
@@ -120,7 +122,12 @@ echo "  Done"
 echo "[3/9] Preparing for Let's Encrypt certificate..."
 systemctl stop apache2 2>/dev/null || true
 systemctl stop nginx 2>/dev/null || true
+# Stop strongSwan cleanly and remove stale PID files
 ipsec stop 2>/dev/null || true
+killall -9 charon 2>/dev/null || true
+killall -9 starter 2>/dev/null || true
+rm -f /var/run/charon.pid /var/run/starter.charon.pid 2>/dev/null || true
+sleep 1
 echo "  Done"
 
 # Step 4: Obtain Let's Encrypt certificate
@@ -138,7 +145,7 @@ if [ \$? -ne 0 ]; then
     echo "  ERROR: Failed to obtain certificate!"
     echo "  Make sure:"
     echo "    1. DNS record points \$SERVER_DOMAIN to \$SERVER_IP"
-    echo "    2. Port 80 is open (ufw allow 80/tcp)"
+    echo "    2. Port 80 is open"
     echo "    3. No other service is using port 80"
     exit 1
 fi
@@ -203,36 +210,59 @@ SECEOF
 chmod 600 /etc/ipsec.secrets
 echo "  Done"
 
-# Step 8: Network configuration (IP forwarding + firewall + NAT)
+# Step 8: Network configuration (IP forwarding + NAT)
 echo "[8/9] Configuring network..."
 
+# Detect network interface
+IFACE=\$(ip route show default | awk '/default/ {print \$5}' | head -1)
+IFACE=\${IFACE:-eth0}
+echo "  Network interface: \$IFACE"
+
 # IP forwarding
+sysctl -w net.ipv4.ip_forward=1
+sysctl -w net.ipv4.conf.all.accept_redirects=0
+sysctl -w net.ipv4.conf.all.send_redirects=0
+sysctl -w net.ipv6.conf.all.forwarding=1
+
 cat > /etc/sysctl.d/99-vpn.conf << 'SYSEOF'
 net.ipv4.ip_forward=1
 net.ipv4.conf.all.accept_redirects=0
 net.ipv4.conf.all.send_redirects=0
 net.ipv6.conf.all.forwarding=1
-net.netfilter.nf_conntrack_max=262144
 net.core.rmem_max=16777216
 net.core.wmem_max=16777216
 SYSEOF
-sysctl -p /etc/sysctl.d/99-vpn.conf
 
-# Firewall + NAT
-IFACE=\$(ip route show default | awk '/default/ {print \$5}' | head -1)
-echo "  Network interface: \$IFACE"
+# Load nf_conntrack if available (some VPS kernels don't have it)
+modprobe nf_conntrack 2>/dev/null && {
+    sysctl -w net.netfilter.nf_conntrack_max=262144 2>/dev/null || true
+    echo "net.netfilter.nf_conntrack_max=262144" >> /etc/sysctl.d/99-vpn.conf
+} || echo "  nf_conntrack not available (ok for most VPS)"
 
-if ! grep -q "POSTROUTING.*10.10.10" /etc/ufw/before.rules 2>/dev/null; then
-    sed -i "1i# NAT for VPN\n*nat\n-A POSTROUTING -s 10.10.10.0/24 -o \$IFACE -j MASQUERADE\nCOMMIT\n" /etc/ufw/before.rules
+# NAT masquerade (direct iptables — works with or without ufw)
+iptables -t nat -C POSTROUTING -s 10.10.10.0/24 -o \$IFACE -j MASQUERADE 2>/dev/null || \
+    iptables -t nat -A POSTROUTING -s 10.10.10.0/24 -o \$IFACE -j MASQUERADE
+
+# Persist iptables rules
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
+apt-get install -y iptables-persistent 2>/dev/null || true
+netfilter-persistent save 2>/dev/null || true
+
+# Open firewall ports (ufw may or may not be installed)
+if command -v ufw &>/dev/null; then
+    if ! grep -q "POSTROUTING.*10.10.10" /etc/ufw/before.rules 2>/dev/null; then
+        sed -i "1i# NAT for VPN\n*nat\n-A POSTROUTING -s 10.10.10.0/24 -o \$IFACE -j MASQUERADE\nCOMMIT\n" /etc/ufw/before.rules
+    fi
+    sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+    ufw allow OpenSSH 2>/dev/null || true
+    ufw allow 500/udp 2>/dev/null || true
+    ufw allow 4500/udp 2>/dev/null || true
+    ufw allow 80/tcp 2>/dev/null || true
+    ufw --force enable 2>/dev/null || true
+else
+    echo "  ufw not found — using iptables only (NAT rule already added)"
 fi
-
-sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
-
-ufw allow OpenSSH
-ufw allow 500/udp
-ufw allow 4500/udp
-ufw allow 80/tcp    # For certbot auto-renewal
-ufw --force enable
 echo "  Done"
 
 # Step 9: Setup auto-renewal + start strongSwan
@@ -251,15 +281,22 @@ ipsec restart
 HOOKEOF
 chmod +x /etc/letsencrypt/renewal-hooks/deploy/strongswan.sh
 
-# Start strongSwan
-ipsec restart
-systemctl enable strongswan-starter
-sleep 2
+# Clean up any stale PID files before starting
+ipsec stop 2>/dev/null || true
+killall -9 charon 2>/dev/null || true
+killall -9 starter 2>/dev/null || true
+rm -f /var/run/charon.pid /var/run/starter.charon.pid 2>/dev/null || true
+sleep 1
 
-if ipsec status > /dev/null 2>&1; then
+# Start strongSwan
+systemctl enable strongswan-starter
+systemctl restart strongswan-starter
+sleep 3
+
+if systemctl is-active --quiet strongswan-starter && ipsec status > /dev/null 2>&1; then
     echo "  strongSwan is running!"
 else
-    echo "  WARNING: strongSwan may have issues"
+    echo "  WARNING: strongSwan may have issues. Checking..."
     ipsec statusall
 fi
 
@@ -291,6 +328,12 @@ echo "  [Step 2/4] Uploading setup script to server..."
 echo "  (Enter your SSH password when prompted)"
 echo ""
 scp -o StrictHostKeyChecking=no "$REMOTE_SCRIPT" "$SSH_USER@$SERVER_IP:/tmp/vpn-setup-v2.sh"
+
+if [ $? -ne 0 ]; then
+    echo "  ERROR: Failed to upload script. Check SSH credentials."
+    rm -f "$REMOTE_SCRIPT"
+    exit 1
+fi
 
 # Step 3: Open port 80 for certbot (if UFW is active)
 echo ""

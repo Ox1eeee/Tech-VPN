@@ -13,6 +13,7 @@ struct ServerListView: View {
     
     @State private var servers: [VPNServer] = []
     @State private var isLoading = true
+    @State private var isMeasuringLatency = false
     @State private var errorMessage: String?
     @State private var searchText = ""
     
@@ -127,9 +128,7 @@ struct ServerListView: View {
                 .padding(.horizontal, AppTheme.Spacing.safeMargin)
             
             Button(action: {
-                if let fastest = servers.min(by: { $0.load < $1.load }) {
-                    selectServer(fastest)
-                }
+                selectFastestServer()
             }) {
                 HStack(spacing: AppTheme.Spacing.md) {
                     // Bolt icon
@@ -137,9 +136,17 @@ struct ServerListView: View {
                         .fill(AppTheme.Colors.primaryContainer)
                         .frame(width: 48, height: 48)
                         .overlay(
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.white)
+                            Group {
+                                if isMeasuringLatency {
+                                    ProgressView()
+                                        .tint(.white)
+                                        .scaleEffect(0.9)
+                                } else {
+                                    Image(systemName: "bolt.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.white)
+                                }
+                            }
                         )
                         .shadow(color: AppTheme.Colors.primaryContainer.opacity(0.3), radius: 15)
                     
@@ -148,7 +155,7 @@ struct ServerListView: View {
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(AppTheme.Colors.onSurface)
                         
-                        Text("Connect to the lowest latency node automatically")
+                        Text(isMeasuringLatency ? "Measuring latency..." : "Connect to the lowest latency node automatically")
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.secondary.opacity(0.7))
                     }
@@ -166,13 +173,23 @@ struct ServerListView: View {
                     }
                 }
                 .padding(AppTheme.Spacing.md)
-                .background(AppTheme.Colors.surfaceContainerLow)
+                .background(
+                    vpnManager.useFastestServer
+                        ? AppTheme.Colors.surfaceContainerHigh
+                        : AppTheme.Colors.surfaceContainerLow
+                )
                 .cornerRadius(AppTheme.Radius.xl)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
-                        .stroke(AppTheme.Colors.outlineVariant.opacity(0.1), lineWidth: 1)
+                        .stroke(
+                            vpnManager.useFastestServer
+                                ? AppTheme.Colors.primaryContainer.opacity(0.3)
+                                : AppTheme.Colors.outlineVariant.opacity(0.1),
+                            lineWidth: 1
+                        )
                 )
             }
+            .disabled(isMeasuringLatency)
             .padding(.horizontal, AppTheme.Spacing.safeMargin)
         }
     }
@@ -234,13 +251,29 @@ struct ServerListView: View {
     private static let vpnPass = "TechVPN@2026!"
     
     private func selectServer(_ server: VPNServer) {
+        vpnManager.useFastestServer = false
         configureAndDismiss(server: server)
+    }
+    
+    private func selectFastestServer() {
+        isMeasuringLatency = true
+        Task {
+            let fastest = await APIService.shared.findFastestServer(from: servers)
+            await MainActor.run {
+                isMeasuringLatency = false
+                if let server = fastest {
+                    vpnManager.useFastestServer = true
+                    configureAndDismiss(server: server)
+                }
+            }
+        }
     }
     
     private func configureAndDismiss(server: VPNServer) {
         let vpnUser = Self.vpnUser
         let vpnPass = Self.vpnPass
         vpnManager.selectedServer = server
+        vpnManager.persistSelectedServer()
         
         Task {
             do {

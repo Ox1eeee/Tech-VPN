@@ -21,6 +21,12 @@ struct ContentView: View {
                 }
             } else if authService.isAuthenticated || isGuestMode {
                 MainTabView(vpnManager: vpnManager, authService: authService, isGuestMode: $isGuestMode)
+                    .onAppear {
+                        vpnManager.autoConnectIfNeeded()
+                    }
+                    .task {
+                        await SubscriptionManager.shared.checkSubscriptionStatus()
+                    }
             } else {
                 LoginView(authService: authService) {
                     isGuestMode = true

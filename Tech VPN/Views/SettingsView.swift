@@ -12,12 +12,11 @@ struct SettingsView: View {
     @ObservedObject var vpnManager: VPNManager
     @Binding var isGuestMode: Bool
 
-    @State private var autoConnect = false
-    @State private var killSwitch = true
-    @State private var notifications = true
+    @ObservedObject var subscriptionManager = SubscriptionManager.shared
     @State private var showLogoutAlert = false
     @State private var showLoginSheet = false
     @State private var showDebugLog = false
+    @State private var showSubscription = false
 
     var body: some View {
         ZStack {
@@ -49,13 +48,13 @@ struct SettingsView: View {
                     if !isGuestMode {
                         settingsSection(title: "ACCOUNT") {
                             VStack(spacing: 0) {
-                                SettingsNavRow(title: "Subscription", value: authService.profile?.subscriptionStatus?.capitalized ?? "Free")
+                                Button(action: { showSubscription = true }) {
+                                    SettingsNavRow(title: "Subscription", value: subscriptionManager.isProUser ? "Pro" : "Free")
+                                }
                                 settingsDivider
                                 SettingsNavRow(title: "Email", value: authService.profile?.email ?? authService.currentUser?.email ?? "")
                                 settingsDivider
                                 SettingsNavRow(title: "Username", value: authService.profile?.username ?? authService.currentUser?.username ?? "—")
-                                settingsDivider
-                                SettingsNavRow(title: "Billing History", value: nil)
                             }
                         }
                     }
@@ -65,33 +64,51 @@ struct SettingsView: View {
                         VStack(spacing: 0) {
                             SettingsNavRow(title: "VPN Protocol", value: "IKEv2")
                             settingsDivider
-                            SettingsToggleRow(title: "Auto-Connect", isOn: $autoConnect)
+                            SettingsToggleRow(title: "Auto-Connect", isOn: Binding(
+                                get: { vpnManager.autoConnectEnabled },
+                                set: { vpnManager.autoConnectEnabled = $0 }
+                            ))
                             settingsDivider
-                            SettingsToggleRow(title: "Kill Switch", isOn: $killSwitch)
-                            settingsDivider
-                            SettingsNavRow(title: "Split Tunneling", value: nil)
+                            SettingsToggleRow(title: "Kill Switch", isOn: Binding(
+                                get: { vpnManager.killSwitchEnabled },
+                                set: { vpnManager.updateKillSwitch(enabled: $0) }
+                            ))
                         }
                     }
 
                     // Preferences Section
                     settingsSection(title: "PREFERENCES") {
                         VStack(spacing: 0) {
-                            SettingsNavRow(title: "Appearance", value: "Dark")
-                            settingsDivider
                             SettingsNavRow(title: "Language", value: "English")
-                            settingsDivider
-                            SettingsToggleRow(title: "Notifications", isOn: $notifications)
                         }
                     }
 
                     // Support Section
                     settingsSection(title: "SUPPORT") {
                         VStack(spacing: 0) {
-                            SettingsNavRow(title: "Help Center", value: nil)
+                            Button(action: {
+                                if let url = URL(string: "mailto:business@xylosolution.com") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                SettingsNavRow(title: "Help Center", value: nil)
+                            }
                             settingsDivider
-                            SettingsNavRow(title: "Privacy Policy", value: nil)
+                            Button(action: {
+                                if let url = URL(string: "https://techvpnpro.com/privacy-policy-2/") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                SettingsNavRow(title: "Privacy Policy", value: nil)
+                            }
                             settingsDivider
-                            SettingsNavRow(title: "Terms of Service", value: nil)
+                            Button(action: {
+                                if let url = URL(string: "https://techvpnpro.com/terms-of-service/") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                SettingsNavRow(title: "Terms of Service", value: nil)
+                            }
                             settingsDivider
                             SettingsNavRow(title: "About", value: "Version 1.0.0")
                             settingsDivider
@@ -161,6 +178,9 @@ struct SettingsView: View {
         .sheet(isPresented: $showDebugLog) {
             DebugLogView(vpnManager: vpnManager)
         }
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
+        }
     }
 
     // MARK: - Guest Banner
@@ -227,7 +247,7 @@ struct SettingsView: View {
                 .padding(.bottom, AppTheme.Spacing.sm)
 
             // Subscription Badge
-            Text((authService.profile?.subscriptionStatus ?? "free").uppercased())
+            Text(subscriptionManager.isProUser ? "PRO" : "FREE")
                 .font(.system(size: 10, weight: .bold))
                 .tracking(1)
                 .foregroundColor(AppTheme.Colors.primaryContainer)

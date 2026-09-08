@@ -103,7 +103,16 @@ struct HomeView: View {
     private var serverSelector: some View {
         Button(action: { showServerList = true }) {
             HStack(spacing: 12) {
-                if let server = vpnManager.selectedServer {
+                if vpnManager.useFastestServer, vpnManager.selectedServer != nil {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(AppTheme.Colors.primaryContainer)
+                    
+                    Text("FASTEST SERVER")
+                        .font(.system(size: 12, weight: .bold))
+                        .tracking(2)
+                        .foregroundColor(AppTheme.Colors.onSurface)
+                } else if let server = vpnManager.selectedServer {
                     Text(server.flagEmoji)
                         .font(.system(size: 18))
                     
@@ -131,7 +140,12 @@ struct HomeView: View {
             .clipShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(AppTheme.Colors.outlineVariant.opacity(0.1), lineWidth: 1)
+                    .stroke(
+                        vpnManager.useFastestServer
+                            ? AppTheme.Colors.primaryContainer.opacity(0.3)
+                            : AppTheme.Colors.outlineVariant.opacity(0.1),
+                        lineWidth: 1
+                    )
             )
         }
     }

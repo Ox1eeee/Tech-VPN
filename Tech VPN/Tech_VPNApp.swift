@@ -9,6 +9,10 @@ import SwiftUI
 
 @main
 struct Tech_VPNApp: App {
+    init() {
+        SubscriptionManager.shared.configure()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

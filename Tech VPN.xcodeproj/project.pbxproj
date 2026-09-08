@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3F688A11302A85D30015A574 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 3F3DDF932F6CA479006AF34E /* Supabase */; };
+		3F98C6C1305099EE0030F057 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 3F98C6C0305099EE0030F057 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F98C6C1305099EE0030F057 /* RevenueCat in Frameworks */,
 				3F688A11302A85D30015A574 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +73,7 @@
 			name = "Tech VPN";
 			packageProductDependencies = (
 				3F3DDF932F6CA479006AF34E /* Supabase */,
+				3F98C6C0305099EE0030F057 /* RevenueCat */,
 			);
 			productName = "Tech VPN";
 			productReference = 3F3DDF852F6CA477006AF34E /* Tech VPN.app */;
@@ -102,6 +105,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				3F3DDF942F6CA479006AF34E /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				3F98C6BF305099EE0030F057 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3F3DDF862F6CA477006AF34E /* Products */;
@@ -264,7 +268,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Tech VPN/Tech_VPN.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = H2SB2ZLD67;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -298,7 +302,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Tech VPN/Tech_VPN.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = H2SB2ZLD67;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -356,6 +360,16 @@
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.0.0;
 			};
+			traits = (
+			);
+		};
+		3F98C6BF305099EE0030F057 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.88.0;
+			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
@@ -364,6 +378,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3F3DDF942F6CA479006AF34E /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		3F98C6C0305099EE0030F057 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3F98C6BF305099EE0030F057 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
