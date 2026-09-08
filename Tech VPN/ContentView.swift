@@ -18,24 +18,25 @@ struct ContentView: View {
             if !hasSeenOnboarding {
                 OnboardingView {
                     hasSeenOnboarding = true
+                    if !authService.isAuthenticated {
+                        isGuestMode = true
+                    }
                 }
-            } else if authService.isAuthenticated || isGuestMode {
+            } else {
                 MainTabView(vpnManager: vpnManager, authService: authService, isGuestMode: $isGuestMode)
                     .onAppear {
+                        if !authService.isAuthenticated {
+                            isGuestMode = true
+                        }
                         vpnManager.autoConnectIfNeeded()
                     }
                     .task {
                         await SubscriptionManager.shared.checkSubscriptionStatus()
                     }
-            } else {
-                LoginView(authService: authService) {
-                    isGuestMode = true
-                }
             }
         }
         .animation(.easeInOut(duration: 0.3), value: authService.isAuthenticated)
         .animation(.easeInOut(duration: 0.3), value: hasSeenOnboarding)
-        .animation(.easeInOut(duration: 0.3), value: isGuestMode)
     }
 }
 

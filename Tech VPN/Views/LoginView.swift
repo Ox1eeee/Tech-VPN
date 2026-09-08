@@ -149,39 +149,6 @@ struct LoginView: View {
                             }
                         }
                         
-                        // Divider
-                        HStack(spacing: AppTheme.Spacing.sm) {
-                            Rectangle()
-                                .fill(Color.white.opacity(0.05))
-                                .frame(height: 1)
-                            Text("OR")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(AppTheme.Colors.secondary)
-                            Rectangle()
-                                .fill(Color.white.opacity(0.05))
-                                .frame(height: 1)
-                        }
-                        .padding(.horizontal, AppTheme.Spacing.safeMargin)
-                        
-                        // Apple Sign In
-                        Button(action: {}) {
-                            HStack(spacing: AppTheme.Spacing.sm) {
-                                Image(systemName: "apple.logo")
-                                    .font(.system(size: 18))
-                                Text("CONTINUE WITH APPLE")
-                                    .font(.system(size: 12, weight: .bold))
-                                    .tracking(2)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, AppTheme.Spacing.md)
-                            .foregroundColor(AppTheme.Colors.onSurface)
-                            .overlay(
-                                Capsule()
-                                    .stroke(AppTheme.Colors.secondary.opacity(0.2), lineWidth: 1)
-                            )
-                        }
-                        .padding(.horizontal, AppTheme.Spacing.safeMargin)
-                        
                         // Continue as Guest
                         Button(action: onContinueAsGuest) {
                             Text("Continue without an account")

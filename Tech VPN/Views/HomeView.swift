@@ -14,7 +14,9 @@ struct HomeView: View {
     @ObservedObject private var networkMonitor = NetworkMonitor.shared
     var onProfileTap: () -> Void = {}
     
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @State private var showServerList = false
+    @State private var showSubscription = false
     @State private var connectionTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @State private var elapsedTime: String = "00:00:00"
     @State private var pulseScale: CGFloat = 1.0
@@ -49,6 +51,9 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showServerList) {
             ServerListView(vpnManager: vpnManager)
+        }
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
         }
         .onReceive(connectionTimer) { _ in
             updateTimer()
@@ -88,10 +93,24 @@ struct HomeView: View {
             
             Spacer()
             
-            Button(action: onProfileTap) {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(AppTheme.Colors.secondary)
+            Button(action: { showSubscription = true }) {
+                if subscriptionManager.isProUser {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color(hex: "#f1c40f"))
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 14))
+                        Text("PRO")
+                            .font(.system(size: 12, weight: .bold))
+                    }
+                    .foregroundColor(Color(hex: "#f1c40f"))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color(hex: "#f1c40f").opacity(0.12))
+                    .clipShape(Capsule())
+                }
             }
         }
         .padding(.horizontal, AppTheme.Spacing.safeMargin)

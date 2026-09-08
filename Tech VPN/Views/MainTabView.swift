@@ -9,14 +9,12 @@ import SwiftUI
 
 enum AppTab: Int, CaseIterable {
     case home = 0
-    case servers = 1
-    case stats = 2
-    case settings = 3
+    case stats = 1
+    case settings = 2
     
     var icon: String {
         switch self {
         case .home: return "house.fill"
-        case .servers: return "server.rack"
         case .stats: return "chart.bar.fill"
         case .settings: return "gearshape.fill"
         }
@@ -40,8 +38,6 @@ struct MainTabView: View {
                             selectedTab = .settings
                         }
                     }
-                case .servers:
-                    ServerListView(vpnManager: vpnManager)
                 case .stats:
                     StatsView(vpnManager: vpnManager)
                 case .settings:
