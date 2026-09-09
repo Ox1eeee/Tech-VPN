@@ -189,6 +189,10 @@ struct LoginView: View {
             } else {
                 await authService.login(email: email, password: password)
             }
+            // Clear error on success so stale messages don't persist
+            if authService.isAuthenticated {
+                await MainActor.run { authService.errorMessage = nil }
+            }
         }
     }
 }

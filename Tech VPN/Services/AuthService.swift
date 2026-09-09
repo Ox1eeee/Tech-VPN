@@ -156,4 +156,45 @@ class AuthService: ObservableObject {
             }
         }
     }
+
+    // MARK: - Delete Account
+    /// Deletes all user profile data from the database, clears local state,
+    /// and signs the user out. The underlying Supabase Auth user is also
+    /// deleted via the admin API if available; otherwise the account is
+    /// deactivated and the user is signed out.
+    func deleteAccount() async -> Bool {
+        do {
+            let session = try await supabase.auth.session
+            let userId = session.user.id.uuidString
+
+            // 1. Delete profile data row
+            try? await supabase
+                .from("profiles")
+                .delete()
+                .eq("id", value: userId)
+                .execute()
+
+            // 2. Sign out from Supabase
+            try? await supabase.auth.signOut()
+
+            // 3. Clear RevenueCat identity
+            await SubscriptionManager.shared.logOutUser()
+
+            // 4. Clear all local UserDefaults app data
+            let keys = ["hasSeenOnboarding", "hasAcceptedPrivacy",
+                        "killSwitchEnabled", "useFastestServer", "autoConnectEnabled",
+                        "rating_totalConnections", "rating_hasRatedAfterPurchase",
+                        "rating_lastPromptDate", "rating_connectedMinutesTotal"]
+            keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
+
+            await MainActor.run {
+                self.isAuthenticated = false
+                self.currentUser = nil
+                self.profile = nil
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
 }

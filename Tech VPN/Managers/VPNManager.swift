@@ -356,6 +356,7 @@ class VPNManager: ObservableObject {
                     self.connectedDate = Date()
                     self.networkMonitor.startMonitoring()
                     self.fetchPublicIP()
+                    RatingManager.shared.didConnect()
                 }
             case .connecting:
                 self.status = .connecting

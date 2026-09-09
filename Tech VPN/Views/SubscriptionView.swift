@@ -407,6 +407,7 @@ struct SubscriptionView: View {
             
             let success = await subscriptionManager.purchase(package: pkg)
             if success {
+                RatingManager.shared.didPurchasePro()
                 dismiss()
             }
         }

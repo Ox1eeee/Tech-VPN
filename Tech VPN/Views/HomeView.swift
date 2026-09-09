@@ -85,7 +85,7 @@ struct HomeView: View {
                         )
                 }
                 
-                Text("TECH VPN")
+                Text("TECH VPN Pro")
                     .font(.system(size: 20, weight: .bold))
                     .tracking(-0.5)
                     .foregroundColor(AppTheme.Colors.primary)
@@ -309,10 +309,16 @@ struct HomeView: View {
             return
         }
         let interval = Date().timeIntervalSince(startDate)
-        let hours = Int(interval) / 3600
+        let hours   = Int(interval) / 3600
         let minutes = (Int(interval) % 3600) / 60
         let seconds = Int(interval) % 60
         elapsedTime = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+
+        // Trigger rating prompt exactly at 5-minute and each hour mark
+        let totalSeconds = Int(interval)
+        if totalSeconds == 300 || (totalSeconds > 300 && totalSeconds % 3600 == 0) {
+            RatingManager.shared.didReachFiveMinutesConnected()
+        }
     }
 }
 

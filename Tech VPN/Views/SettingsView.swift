@@ -14,8 +14,10 @@ struct SettingsView: View {
 
     @ObservedObject var subscriptionManager = SubscriptionManager.shared
     @State private var showLogoutAlert = false
+    @State private var showDeleteAlert = false
+    @State private var showDeleteConfirmAlert = false
+    @State private var isDeletingAccount = false
     @State private var showLoginSheet = false
-    @State private var showDebugLog = false
     @State private var showSubscription = false
     @State private var isRestoring = false
     @State private var showRestoreAlert = false
@@ -185,10 +187,7 @@ struct SettingsView: View {
                                 .padding(.horizontal, 16)
                             }
                             .disabled(isRestoring)
-                            settingsDivider
-                            Button(action: { showDebugLog = true }) {
-                                SettingsNavRow(title: "Debug Log", value: nil)
-                            }
+
                         }
                     }
 
@@ -223,6 +222,29 @@ struct SettingsView: View {
                         }
                         .padding(.horizontal, AppTheme.Spacing.safeMargin)
                         .padding(.top, AppTheme.Spacing.sm)
+
+                        // Delete account — destructive, shown only for logged-in users
+                        Button(action: { showDeleteAlert = true }) {
+                            HStack(spacing: 8) {
+                                if isDeletingAccount {
+                                    ProgressView()
+                                        .tint(.red)
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: "trash.fill")
+                                        .font(.system(size: 14))
+                                }
+                                Text(isDeletingAccount ? "Deleting..." : "DELETE ACCOUNT")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .tracking(1)
+                            }
+                            .foregroundColor(.red.opacity(0.8))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppTheme.Spacing.md)
+                        }
+                        .disabled(isDeletingAccount)
+                        .padding(.horizontal, AppTheme.Spacing.safeMargin)
+                        .padding(.top, 4)
                     }
 
                     Spacer().frame(height: 100)
@@ -241,6 +263,22 @@ struct SettingsView: View {
         } message: {
             Text("Are you sure you want to log out? Your VPN connection will be disconnected.")
         }
+        .alert("Delete Account", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                showDeleteConfirmAlert = true
+            }
+        } message: {
+            Text("This will permanently delete your account and all associated data. This action cannot be undone.")
+        }
+        .alert("Are you absolutely sure?", isPresented: $showDeleteConfirmAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Yes, Delete Everything", role: .destructive) {
+                handleDeleteAccount()
+            }
+        } message: {
+            Text("Your profile, connection history, and settings will be permanently removed. Your VPN subscription will not be automatically cancelled — please cancel it in your App Store subscriptions.")
+        }
         .task {
             if !isGuestMode {
                 await authService.fetchProfile()
@@ -248,9 +286,6 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showLoginSheet) {
             LoginSheet(authService: authService, isGuestMode: $isGuestMode)
-        }
-        .sheet(isPresented: $showDebugLog) {
-            DebugLogView(vpnManager: vpnManager)
         }
         .sheet(isPresented: $showSubscription) {
             SubscriptionView()
@@ -276,6 +311,24 @@ struct SettingsView: View {
                     restoreMessage = "No active subscription was found for your Apple ID. If you believe this is an error, please contact support at business@xylosolution.com"
                 }
                 showRestoreAlert = true
+            }
+        }
+    }
+
+    // MARK: - Delete Account Handler
+    private func handleDeleteAccount() {
+        isDeletingAccount = true
+        if vpnManager.isConnected {
+            vpnManager.disconnect()
+        }
+        Task {
+            let success = await authService.deleteAccount()
+            await MainActor.run {
+                isDeletingAccount = false
+                if !success {
+                    // Fallback: just log out locally if deletion call failed
+                    authService.logout()
+                }
             }
         }
     }
@@ -455,11 +508,19 @@ private struct LoginSheet: View {
     var body: some View {
         NavigationView {
             LoginView(authService: authService) {
+                // "Continue without account" tapped
                 isGuestMode = false
                 dismiss()
             }
             .navigationBarHidden(true)
         }
         .preferredColorScheme(.dark)
+        // Auto-dismiss as soon as authentication succeeds (login OR signup)
+        .onChange(of: authService.isAuthenticated) { authenticated in
+            if authenticated {
+                isGuestMode = false
+                dismiss()
+            }
+        }
     }
 }

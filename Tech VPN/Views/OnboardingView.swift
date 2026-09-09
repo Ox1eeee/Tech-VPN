@@ -14,7 +14,7 @@ struct OnboardingView: View {
     private let pages: [OnboardingPage] = [
         OnboardingPage(
             imageName: "onboarding1",
-            title: "TECH VPN",
+            title: "TECH VPN Pro",
             subtitle: "Your digital bodyguard."
         ),
         OnboardingPage(
