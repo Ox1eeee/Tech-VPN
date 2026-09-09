@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var hasAcceptedPrivacy = UserDefaults.standard.bool(forKey: "hasAcceptedPrivacy")
     @State private var hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
     @State private var isGuestMode = false
+    @State private var showSubscriptionAfterOnboarding = false
     
     var body: some View {
         Group {
@@ -27,6 +28,7 @@ struct ContentView: View {
                     if !authService.isAuthenticated {
                         isGuestMode = true
                     }
+                    showSubscriptionAfterOnboarding = true
                 }
             } else {
                 MainTabView(vpnManager: vpnManager, authService: authService, isGuestMode: $isGuestMode)
@@ -44,6 +46,9 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.3), value: hasAcceptedPrivacy)
         .animation(.easeInOut(duration: 0.3), value: authService.isAuthenticated)
         .animation(.easeInOut(duration: 0.3), value: hasSeenOnboarding)
+        .fullScreenCover(isPresented: $showSubscriptionAfterOnboarding) {
+            SubscriptionView()
+        }
     }
 }
 

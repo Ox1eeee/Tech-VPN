@@ -249,13 +249,11 @@ struct SubscriptionView: View {
     }
     
     private var yearlyWeeklyEquivalent: String? {
-        guard let pkg = subscriptionManager.yearlyPackage else { return nil }
+        guard let pkg = subscriptionManager.yearlyPackage,
+              let formatter = pkg.storeProduct.priceFormatter else { return nil }
         let yearlyPrice = pkg.storeProduct.price as Decimal
-        let weeklyEquiv = yearlyPrice / 52
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = pkg.storeProduct.priceFormatter?.locale ?? .current
-        return formatter.string(from: weeklyEquiv as NSDecimalNumber)
+        let weeklyEquiv = (yearlyPrice / 52) as NSDecimalNumber
+        return formatter.string(from: weeklyEquiv)
     }
     
     // MARK: - Yearly Plan Card
