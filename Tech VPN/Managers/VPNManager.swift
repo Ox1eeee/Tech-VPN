@@ -42,7 +42,6 @@ class VPNManager: ObservableObject {
         self.autoConnectEnabled = UserDefaults.standard.object(forKey: "autoConnectEnabled") as? Bool ?? false
         loadVPNConfiguration()
         monitorVPNStatus()
-        fetchPublicIP()
     }
     
     // MARK: - Configure IKEv2 VPN
@@ -372,7 +371,7 @@ class VPNManager: ObservableObject {
                 self.status = .disconnected
                 self.isConnected = false
                 self.connectedDate = nil
-                self.fetchPublicIP()
+                self.publicIP = ""
             case .invalid:
                 self.status = .invalid
                 self.isConnected = false

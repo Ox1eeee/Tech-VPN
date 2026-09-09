@@ -254,9 +254,12 @@ struct HomeView: View {
                         .font(.system(size: 20, weight: .medium, design: .monospaced))
                         .foregroundColor(AppTheme.Colors.onSurface)
                     
-                    Text("IP: \(vpnManager.publicIP.isEmpty ? "..." : vpnManager.publicIP)")
-                        .font(.system(size: 14, weight: .medium, design: .monospaced))
-                        .foregroundColor(AppTheme.Colors.outlineVariant.opacity(0.6))
+                    if !vpnManager.publicIP.isEmpty {
+                        Text("IP: \(vpnManager.publicIP)")
+                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .foregroundColor(AppTheme.Colors.outlineVariant.opacity(0.6))
+                    }
+                    
                 } else if vpnManager.status == .connecting {
                     HStack(spacing: 8) {
                         ProgressView()
@@ -273,10 +276,6 @@ struct HomeView: View {
                         .font(.system(size: 12, weight: .bold))
                         .tracking(3)
                         .foregroundColor(AppTheme.Colors.secondary)
-                    
-                    Text("IP: \(vpnManager.publicIP.isEmpty ? "..." : vpnManager.publicIP)")
-                        .font(.system(size: 14, weight: .medium, design: .monospaced))
-                        .foregroundColor(AppTheme.Colors.outlineVariant.opacity(0.6))
                 }
             }
         }
