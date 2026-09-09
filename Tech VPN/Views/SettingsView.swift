@@ -17,6 +17,9 @@ struct SettingsView: View {
     @State private var showLoginSheet = false
     @State private var showDebugLog = false
     @State private var showSubscription = false
+    @State private var isRestoring = false
+    @State private var showRestoreAlert = false
+    @State private var restoreMessage = ""
 
     var body: some View {
         ZStack {
@@ -162,6 +165,27 @@ struct SettingsView: View {
                             settingsDivider
                             SettingsNavRow(title: "About", value: "Version 1.0.0")
                             settingsDivider
+                            Button(action: handleRestorePurchases) {
+                                HStack {
+                                    Text("Restore Purchases")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(Color(hex: "#E4E2E1"))
+                                    Spacer()
+                                    if isRestoring {
+                                        ProgressView()
+                                            .scaleEffect(0.8)
+                                            .tint(AppTheme.Colors.secondary)
+                                    } else {
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(AppTheme.Colors.secondary.opacity(0.4))
+                                    }
+                                }
+                                .frame(height: 56)
+                                .padding(.horizontal, 16)
+                            }
+                            .disabled(isRestoring)
+                            settingsDivider
                             Button(action: { showDebugLog = true }) {
                                 SettingsNavRow(title: "Debug Log", value: nil)
                             }
@@ -230,6 +254,29 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showSubscription) {
             SubscriptionView()
+        }
+        .alert(restoreMessage.contains("✓") ? "Purchases Restored" : "Restore Failed",
+               isPresented: $showRestoreAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(restoreMessage)
+        }
+    }
+
+    // MARK: - Restore Purchases Handler
+    private func handleRestorePurchases() {
+        isRestoring = true
+        Task {
+            let success = await subscriptionManager.restorePurchases()
+            await MainActor.run {
+                isRestoring = false
+                if success {
+                    restoreMessage = "✓ Your Pro subscription has been restored successfully."
+                } else {
+                    restoreMessage = "No active subscription was found for your Apple ID. If you believe this is an error, please contact support at business@xylosolution.com"
+                }
+                showRestoreAlert = true
+            }
         }
     }
 

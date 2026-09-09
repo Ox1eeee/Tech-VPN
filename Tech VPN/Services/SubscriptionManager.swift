@@ -100,6 +100,28 @@ class SubscriptionManager: ObservableObject {
         }
     }
     
+    // MARK: - Sync RevenueCat user identity with app account
+    /// Call after the user logs in or creates an account so their purchases
+    /// are linked to their Supabase user ID across all devices.
+    func syncUserID(_ userId: String) async {
+        do {
+            let (customerInfo, _) = try await Purchases.shared.logIn(userId)
+            self.isProUser = customerInfo.entitlements[Self.entitlementID]?.isActive == true
+        } catch {
+            // Silently fail — subscription status from previous check is kept
+        }
+    }
+
+    /// Call when the user logs out so RevenueCat reverts to anonymous identity.
+    func logOutUser() async {
+        do {
+            let customerInfo = try await Purchases.shared.logOut()
+            self.isProUser = customerInfo.entitlements[Self.entitlementID]?.isActive == true
+        } catch {
+            self.isProUser = false
+        }
+    }
+
     // MARK: - Restore Purchases
     func restorePurchases() async -> Bool {
         isPurchasing = true

@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import Combine
 import Supabase
+import RevenueCat
 
 class AuthService: ObservableObject {
     static let shared = AuthService()
@@ -31,15 +32,17 @@ class AuthService: ObservableObject {
     func checkAuthStatus() async {
         do {
             let session = try await supabase.auth.session
+            let userId = session.user.id.uuidString
             await MainActor.run {
                 self.isAuthenticated = true
                 self.currentUser = User(
-                    id: session.user.id.uuidString,
+                    id: userId,
                     username: session.user.userMetadata["username"]?.value as? String ?? "",
                     email: session.user.email ?? ""
                 )
             }
             await fetchProfile()
+            await SubscriptionManager.shared.syncUserID(userId)
         } catch {
             await MainActor.run {
                 self.isAuthenticated = false
@@ -62,9 +65,10 @@ class AuthService: ObservableObject {
             )
             
             if response.session != nil {
+                let userId = response.user.id.uuidString
                 await MainActor.run {
                     self.currentUser = User(
-                        id: response.user.id.uuidString,
+                        id: userId,
                         username: username,
                         email: email
                     )
@@ -72,6 +76,7 @@ class AuthService: ObservableObject {
                     self.isLoading = false
                 }
                 await fetchProfile()
+                await SubscriptionManager.shared.syncUserID(userId)
             } else {
                 await MainActor.run {
                     self.errorMessage = "Please check your email to confirm your account."
@@ -99,9 +104,10 @@ class AuthService: ObservableObject {
                 password: password
             )
             
+            let userId = session.user.id.uuidString
             await MainActor.run {
                 self.currentUser = User(
-                    id: session.user.id.uuidString,
+                    id: userId,
                     username: session.user.userMetadata["username"]?.value as? String ?? "",
                     email: session.user.email ?? ""
                 )
@@ -109,6 +115,7 @@ class AuthService: ObservableObject {
                 self.isLoading = false
             }
             await fetchProfile()
+            await SubscriptionManager.shared.syncUserID(userId)
         } catch {
             await MainActor.run {
                 self.errorMessage = error.localizedDescription
@@ -141,6 +148,7 @@ class AuthService: ObservableObject {
     func logout() {
         Task {
             try? await supabase.auth.signOut()
+            await SubscriptionManager.shared.logOutUser()
             await MainActor.run {
                 self.isAuthenticated = false
                 self.currentUser = nil
