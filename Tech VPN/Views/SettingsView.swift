@@ -48,8 +48,31 @@ struct SettingsView: View {
                     if !isGuestMode {
                         settingsSection(title: "ACCOUNT") {
                             VStack(spacing: 0) {
-                                Button(action: { showSubscription = true }) {
-                                    SettingsNavRow(title: "Subscription", value: subscriptionManager.isProUser ? "Pro" : "Free")
+                                if subscriptionManager.isProUser {
+                                    // Pro users see status only — no upgrade prompt
+                                    HStack {
+                                        Text("Subscription")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Color(hex: "#E4E2E1"))
+                                        Spacer()
+                                        HStack(spacing: 5) {
+                                            Image(systemName: "crown.fill")
+                                                .font(.system(size: 11))
+                                            Text("PRO")
+                                                .font(.system(size: 11, weight: .bold))
+                                        }
+                                        .foregroundColor(Color(hex: "#f1c40f"))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color(hex: "#f1c40f").opacity(0.12))
+                                        .clipShape(Capsule())
+                                    }
+                                    .frame(height: 56)
+                                    .padding(.horizontal, 16)
+                                } else {
+                                    Button(action: { showSubscription = true }) {
+                                        SettingsNavRow(title: "Subscription", value: "Free")
+                                    }
                                 }
                                 settingsDivider
                                 SettingsNavRow(title: "Email", value: authService.profile?.email ?? authService.currentUser?.email ?? "")

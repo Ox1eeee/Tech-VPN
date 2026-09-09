@@ -93,12 +93,25 @@ struct HomeView: View {
             
             Spacer()
             
-            Button(action: { showSubscription = true }) {
-                if subscriptionManager.isProUser {
+            if subscriptionManager.isProUser {
+                // Non-tappable PRO badge for subscribed users
+                HStack(spacing: 5) {
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(Color(hex: "#f1c40f"))
-                } else {
+                        .font(.system(size: 12))
+                    Text("PRO")
+                        .font(.system(size: 12, weight: .bold))
+                }
+                .foregroundColor(Color(hex: "#f1c40f"))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color(hex: "#f1c40f").opacity(0.15))
+                .overlay(
+                    Capsule()
+                        .stroke(Color(hex: "#f1c40f").opacity(0.3), lineWidth: 1)
+                )
+                .clipShape(Capsule())
+            } else {
+                Button(action: { showSubscription = true }) {
                     HStack(spacing: 4) {
                         Image(systemName: "crown.fill")
                             .font(.system(size: 14))
