@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		3F688A11302A85D30015A574 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 3F3DDF932F6CA479006AF34E /* Supabase */; };
 		3F98C6C1305099EE0030F057 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 3F98C6C0305099EE0030F057 /* RevenueCat */; };
+		3FD628C33052D47E00CA502B /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 3FD628C23052D47E00CA502B /* FirebaseAnalytics */; };
+		3FD628C53052D47E00CA502B /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3FD628C43052D47E00CA502B /* FirebaseAnalyticsCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +32,8 @@
 			files = (
 				3F98C6C1305099EE0030F057 /* RevenueCat in Frameworks */,
 				3F688A11302A85D30015A574 /* Supabase in Frameworks */,
+				3FD628C33052D47E00CA502B /* FirebaseAnalytics in Frameworks */,
+				3FD628C53052D47E00CA502B /* FirebaseAnalyticsCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,6 +78,8 @@
 			packageProductDependencies = (
 				3F3DDF932F6CA479006AF34E /* Supabase */,
 				3F98C6C0305099EE0030F057 /* RevenueCat */,
+				3FD628C23052D47E00CA502B /* FirebaseAnalytics */,
+				3FD628C43052D47E00CA502B /* FirebaseAnalyticsCore */,
 			);
 			productName = "Tech VPN";
 			productReference = 3F3DDF852F6CA477006AF34E /* Tech VPN.app */;
@@ -106,6 +112,7 @@
 			packageReferences = (
 				3F3DDF942F6CA479006AF34E /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				3F98C6BF305099EE0030F057 /* XCRemoteSwiftPackageReference "purchases-ios" */,
+				3FD628C13052D47E00CA502B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3F3DDF862F6CA477006AF34E /* Products */;
@@ -268,7 +275,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Tech VPN/Tech_VPN.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = H2SB2ZLD67;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -302,7 +309,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Tech VPN/Tech_VPN.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 17;
+				CURRENT_PROJECT_VERSION = 18;
 				DEVELOPMENT_TEAM = H2SB2ZLD67;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -371,6 +378,14 @@
 				minimumVersion = 5.88.0;
 			};
 		};
+		3FD628C13052D47E00CA502B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.19.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -383,6 +398,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3F98C6BF305099EE0030F057 /* XCRemoteSwiftPackageReference "purchases-ios" */;
 			productName = RevenueCat;
+		};
+		3FD628C23052D47E00CA502B /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3FD628C13052D47E00CA502B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		3FD628C43052D47E00CA502B /* FirebaseAnalyticsCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3FD628C13052D47E00CA502B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

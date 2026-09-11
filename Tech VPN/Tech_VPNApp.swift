@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import Firebase
 
 @main
 struct Tech_VPNApp: App {
     init() {
+        FirebaseApp.configure()
         SubscriptionManager.shared.configure()
     }
     
